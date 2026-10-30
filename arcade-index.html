@@ -6,7 +6,7 @@
   <title>Jordi Arcade</title>
   <style>
     * { box-sizing: border-box; }
-body {
+    body {
       margin: 0;
       min-height: 100vh;
       background: radial-gradient(ellipse at 50% 0, #34205e 0, #100d20 45%, #03040a 100%);
@@ -255,12 +255,54 @@ body {
     </footer>
   </main>
   <script>
-    const games = [{"name":"Pac-Jordi","category":"Arcade","description":"Disclaimer: Pac-Jordi is een onafhankelijk hobbyproject.","folder":"spel-01-pac-jordi","html":"index.html","cover":"Cover-pacjordi.png"},{"name":"Blokkenbreker","category":"Arcade","description":"Disclaimer: Blokkenbreker is een onafhankelijk hobbyproject.","folder":"spel-02-blokkenbreker","html":"index.html","cover":"Blokkenbrekercover.png"},{"name":"Flappy-Jordi","category":"Overig","description":"Disclaimer: Flappy-Jordi is een onafhankelijk hobbyproject.","folder":"spel-03-flappy-jordi","html":"index.html","cover":"flappyjordicover.png"},{"name":"Jordi steekt over","category":"Arcade","description":"Disclaimer: Jordi steekt over is een onafhankelijk hobbyproject.","folder":"spel-04-jordi-steekt-over","html":"index.html","cover":"Jordi-Steekt-Over-cover.jpg"},{"name":"Jordi vip fruit slot","category":"Casino","description":"Disclaimer: Jordi vip fruit slot is een onafhankelijk hobbyproject.","folder":"spel-05-jordi-vip-fruit-slot","html":"index.html","cover":"Jordi-VIP-Fruit-Slot-Cover.png"}];
+    const games = [
+      {
+        "name": "Pac-Jordi",
+        "category": "Arcade",
+        "description": "Disclaimer: Pac-Jordi is een onafhankelijk hobbyproject.",
+        "folder": "spel-01-pac-jordi",
+        "html": "index.html",
+        "cover": "Cover-pacjordi.png"
+      },
+      {
+        "name": "Blokkenbreker",
+        "category": "Arcade",
+        "description": "Disclaimer: Blokkenbreker is een onafhankelijk hobbyproject.",
+        "folder": "spel-02-blokkenbreker",
+        "html": "index.html",
+        "cover": "Blokkenbrekercover.png"
+      },
+      {
+        "name": "Flappy-Jordi",
+        "category": "Overig",
+        "description": "Disclaimer: Flappy-Jordi is een onafhankelijk hobbyproject.",
+        "folder": "spel-03-flappy-jordi",
+        "html": "index.html",
+        "cover": "flappyjordicover.png"
+      },
+      {
+        "name": "Jordi steekt over",
+        "category": "Arcade",
+        "description": "Disclaimer: Jordi steekt over is een onafhankelijk hobbyproject.",
+        "folder": "spel-04-jordi-steekt-over",
+        "html": "index.html",
+        "cover": "Jordi-Steekt-Over-cover.jpg"
+      },
+      {
+        "name": "Jordi vip fruit slot",
+        "category": "Casino",
+        "description": "Disclaimer: Jordi vip fruit slot is een onafhankelijk hobbyproject.",
+        "folder": "spel-05-jordi-vip-fruit-slot",
+        "html": "index.html",
+        "cover": "Jordi-VIP-Fruit-Slot-Cover.png"
+      }
+    ];
+
     let selected = 0;
     const list = document.getElementById('list'), screen = document.getElementById('screen');
     
     function assetUrl(g, p) {
-      return 'arcade-games/' + g.folder + '/' + p.split('/').map(encodeURIComponent).join('/');
+      return '/arcade-games/' + g.folder + '/' + p.split('/').map(encodeURIComponent).join('/');
     }
     
     function render() {
@@ -288,13 +330,13 @@ body {
       list.children[selected]?.scrollIntoView({ block: 'nearest' });
     }
     
-function play() {
+    function play() {
       if (!games.length) return;
       const g = games[selected];
       const url = assetUrl(g, g.html);
       
-      // Opent het spel in een nieuw tabblad/webpagina
-      window.open(url, '_blank');
+      // Opent de volledige absolute URL in een nieuw tabblad zodat scripts en assets altijd correct laden
+      window.open(window.location.origin + url, '_blank');
     }
     
     function move(d) {
