@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blokkenbreker</title>
+    <style>
+        * { margin: 0; padding: 0; box-content: border-box; }
+        body {
+            background-color: #0d0d13;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #game-container { position: relative; }
+        canvas {
+            background-color: #12121f;
+            border: 4px solid #ff007f;
+            box-shadow: 0 0 20px #ff007f, inset 0 0 10px #ff007f;
+            display: block;
+        }
+        .ui-text {
+            display: flex;
+            justify-content: space-between;
+            width: 800px;
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 8px #00ffff;
+            color: #00ffff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ui-text">
+        <span id="score-display">Score: 0</span>
+        <span id="lives-display">Levens: 3</span>
+        <span id="highscore-display">Highscore: 0</span>
+    </div>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+    </div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// Game variabelen
+let score = 0;
+let lives = 3;
+let highscore = localStorage.getItem("brick_highscore") || 0;
+document.getElementById("highscore-display").innerText = "Highscore: " + highscore;
+
+let gameActive = true;
+
+// Batje instellingen
+let paddleWidth = 100;
+let paddleHeight = 15;
+let paddleX = (canvas.width - paddleWidth) / 2;
+const paddleY = canvas.height - 30;
+let paddleSpeed = 8;
+
+// Bal instellingen
+let ballRadius = 8;
+let ballX = canvas.width / 2;
+let ballY = paddleY - ballRadius - 5;
+let ballDX = 4 * (Math.random() > 0.5 ? 1 : -1);
+let ballDY = -4;
+let baseBallSpeed = 5.5;
+
+// Besturing status
+let rightPressed = false;
+let leftPressed = false;
+
+// Stenen (Bricks)
+const brickRowCount = 5;
+const brickColumnCount = 9;
+const brickWidth = 75;
+const brickHeight = 24;
+const brickPadding = 10;
+const brickOffsetTop = 40;
+const brickOffsetLeft = 20;
+
+const colors = ["#ff007f", "#00ffff", "#ffaa00", "#00ff00", "#7f00ff"];
+let bricks = [];
+
+function initBricks() {
+    bricks = [];
+    for(let c=0; c<brickColumnCount; c++) {
+        bricks[c] = [];
+        for(let r=0; r<brickRowCount; r++) {
+            // 20% kans dat een steen een power-up bevat
+            let hasPowerUp = Math.random() < 0.2;
+            bricks[c][r] = { x: 0, y: 0, status: 1, color: colors[r], powerUp: hasPowerUp };
+        }
+    }
+}
+initBricks();
+
+// Power-ups lijst
+let powerUps = [];
+
+// Event listeners voor toetsenbord
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+function keyDownHandler(e) {
+    if(e.key == "Right" || e.key == "ArrowRight" || e.key.toLowerCase() == "d") rightPressed = true;
+    else if(e.key == "Left" || e.key == "ArrowLeft" || e.key.toLowerCase() == "a") leftPressed = true;
+}
+
+function keyUpHandler(e) {
+    if(e.key == "Right" || e.key == "ArrowRight" || e.key.toLowerCase() == "d") rightPressed = false;
+    else if(e.key == "Left" || e.key == "ArrowLeft" || e.key.toLowerCase() == "a") leftPressed = false;
+}
+
+// Reset bal na levenverlies
+function resetBallAndPaddle() {
+    paddleX = (canvas.width - paddleWidth) / 2;
+    ballX = canvas.width / 2;
+    ballY = paddleY - ballRadius - 5;
+    ballDX = baseBallSpeed * (Math.random() > 0.5 ? 1 : -1);
+    ballDY = -baseBallSpeed;
+}
+
+// Botsingsdetectie
+function collisionDetection() {
+    for(let c=0; c<brickColumnCount; c++) {
+        for(let r=0; r<brickRowCount; r++) {
+            let b = bricks[c][r];
+            if(b.status == 1) {
+                if(ballX > b.x && ballX < b.x + brickWidth && ballY > b.y && ballY < b.y + brickHeight) {
+                    ballDY = -ballDY;
+                    b.status = 0;
+                    score += 10;
+                    document.getElementById("score-display").innerText = "Score: " + score;
+                    
+                    // Drop power-up als deze erin zat
+                    if(b.powerUp) {
+                        powerUps.push({ x: b.x + brickWidth/2, y: b.y + brickHeight, type: Math.random() > 0.5 ? 'wide' : 'life', status: 1 });
+                    }
+
+                    // Check winst
+                    if(checkWin()) {
+                        if(score > highscore) {
+                            highscore = score;
+                            localStorage.setItem("brick_highscore", highscore);
+                        }
+                        alert("GEWONNEN! Gefeliciteerd met je highscore.");
+                        document.location.reload();
+                    }
+                }
+            }
+        }
+    }
+}
+
+function checkWin() {
+    for(let c=0; c<brickColumnCount; c++) {
+        for(let r=0; r<brickRowCount; r++) {
+            if(bricks[c][r].status == 1) return false;
+        }
+    }
+    return true;
+}
+
+// Teken functies met Neon Glows
+function drawBall() {
+    ctx.beginPath();
+    ctx.arc(ballX, ballY, ballRadius, 0, Math.PI*2);
+    ctx.fillStyle = "#fff";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#00ffff";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawPaddle() {
+    ctx.beginPath();
+    ctx.rect(paddleX, paddleY, paddleWidth, paddleHeight);
+    ctx.fillStyle = "#00ffff";
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "#00ffff";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawBricks() {
+    for(let c=0; c<brickColumnCount; c++) {
+        for(let r=0; r<brickRowCount; r++) {
+            if(bricks[c][r].status == 1) {
+                let brickX = (c*(brickWidth+brickPadding))+brickOffsetLeft;
+                let brickY = (r*(brickHeight+brickPadding))+brickOffsetTop;
+                bricks[c][r].x = brickX;
+                bricks[c][r].y = brickY;
+                ctx.beginPath();
+                ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                ctx.fillStyle = bricks[c][r].color;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = bricks[c][r].color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+    }
+}
+
+function drawPowerUps() {
+    powerUps.forEach((p) => {
+        if(p.status == 1) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 10, 0, Math.PI*2);
+            ctx.fillStyle = p.type === 'wide' ? '#00ff00' : '#ff007f';
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.fill();
+            ctx.closePath();
+        }
+    });
+}
+
+// Hoofd Game Loop
+function draw() {
+    if(!gameActive) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Teken alles
+    drawBricks();
+    drawBall();
+    drawPaddle();
+    drawPowerUps();
+    
+    // Botsingen en logica
+    collisionDetection();
+
+    // Muren stuiteren (Links / Rechts)
+    if(ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) {
+        ballDX = -ballDX;
+    }
+    // Bovenmuur stuiteren
+    if(ballY + ballDY < ballRadius) {
+        ballDY = -ballDY;
+    } 
+    // Onderkant (Batje raken of af zijn)
+    else if(ballY + ballDY > paddleY - ballRadius) {
+        if(ballX > paddleX && ballX < paddleX + paddleWidth) {
+            // Bereken hoek op basis van waar de bal het batje raakt
+            let hitPos = (ballX - paddleX) / paddleWidth;
+            ballDX = 8 * (hitPos - 0.5);
+            ballDY = -ballDY;
+        } else if(ballY + ballDY > canvas.height - ballRadius) {
+            lives--;
+            document.getElementById("lives-display").innerText = "Levens: " + lives;
+            if(!lives) {
+                if(score > highscore) {
+                    localStorage.setItem("brick_highscore", score);
+                }
+                gameActive = false;
+                alert("GAME OVER! Je score: " + score);
+                document.location.reload();
+            } else {
+                resetBallAndPaddle();
+            }
+        }
+    }
+
+    // Update Power-ups posities en vang-logica
+    powerUps.forEach((p) => {
+        if(p.status == 1) {
+            p.y += 2.5; // Valsnelheid
+            
+            // Kijken of het batje hem vangt
+            if(p.y > paddleY && p.y < paddleY + paddleHeight && p.x > paddleX && p.x < paddleX + paddleWidth) {
+                p.status = 0;
+                if(p.type === 'wide') {
+                    paddleWidth = 160; // Maak batje breder
+                    setTimeout(() => { paddleWidth = 100; }, 10000); // Na 10 sec weer normaal
+                } else if(p.type === 'life') {
+                    lives++;
+                    document.getElementById("lives-display").innerText = "Levens: " + lives;
+                }
+            }
+            // Uit het scherm gevallen
+            if(p.y > canvas.height) p.status = 0;
+        }
+    });
+
+    // Beweeg het batje
+    if(rightPressed && paddleX < canvas.width - paddleWidth) {
+        paddleX += paddleSpeed;
+    } else if(leftPressed && paddleX > 0) {
+        paddleX -= paddleSpeed;
+    }
+
+    // Beweeg de bal
+    ballX += ballDX;
+    ballY += ballDY;
+
+    // Reset schaduw instellingen voor prestaties
+    ctx.shadowBlur = 0;
+
+    requestAnimationFrame(draw);
+}
+
+// Start de game loop
+draw();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JORDI VIP FRUIT SLOT</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            background: radial-gradient(circle, #2b0836 0%, #0c0214 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .slot-container {
+            background: #120320;
+            border: 4px solid #f59e0b;
+            box-shadow: 0 0 35px #d97706, inset 0 0 15px #f59e0b;
+            border-radius: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 850px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* HEADER & BANNER */
+        .slot-header { text-align: center; margin-bottom: 15px; width: 100%; position: relative; }
+        .slot-title {
+            font-size: 32px;
+            font-weight: 900;
+            color: #fbbf24;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #f59e0b, 0 0 20px #d97706, 2px 2px 0px #000;
+            letter-spacing: 2px;
+        }
+        .jackpot-banner {
+            background: linear-gradient(90deg, #9333ea, #ec4899, #9333ea);
+            border: 2px solid #fef08a;
+            border-radius: 10px;
+            padding: 6px 15px;
+            margin-top: 5px;
+            display: inline-block;
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.6);
+        }
+        .jackpot-amount { font-size: 22px; font-weight: 800; color: #fff; text-shadow: 0 0 8px #fff; }
+
+        /* REELS FRAME & CANVAS */
+        .reels-frame {
+            background: #000;
+            border: 4px solid #a855f7;
+            box-shadow: 0 0 25px #a855f7;
+            border-radius: 12px;
+            padding: 6px;
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        canvas#slotCanvas {
+            background: #090314;
+            border-radius: 8px;
+            display: block;
+            max-width: 100%;
+        }
+
+        /* DASHBOARD / CONTROLS */
+        .dashboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 15px;
+            background: #18092b;
+            border: 2px solid #3b0764;
+            padding: 12px 20px;
+            border-radius: 12px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: #090314;
+            border: 1px solid #a855f7;
+            padding: 8px 15px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 110px;
+        }
+        .stat-label { font-size: 11px; color: #a855f7; font-weight: bold; text-transform: uppercase; }
+        .stat-value { font-size: 20px; color: #fbbf24; font-weight: 800; font-family: monospace; }
+
+        .controls { display: flex; gap: 10px; }
+
+        .btn {
+            background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+            border: 2px solid #60a5fa;
+            color: #fff;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 800;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            transition: 0.1s;
+        }
+        .btn:active { transform: translateY(2px); }
+        .btn-music {
+            background: linear-gradient(180deg, #9333ea 0%, #6b21a8 100%);
+            border-color: #c084fc;
+        }
+        .btn-spin {
+            background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
+            border-color: #4ade80;
+            font-size: 18px;
+            padding: 12px 35px;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+        }
+        .btn-spin:hover { background: linear-gradient(180deg, #16a34a 0%, #166534 100%); }
+        .btn-spin:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #win-message {
+            margin-top: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #4ade80;
+            height: 25px;
+            text-shadow: 0 0 10px #22c55e;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="slot-container">
+    <div class="slot-header">
+        <div class="slot-title">★ JORDI VIP FRUIT SLOT ★</div>
+        <div class="jackpot-banner">
+            <span style="color:#fef08a; font-weight:bold; font-size:12px;">JACKPOT: </span>
+            <span class="jackpot-amount" id="jackpot-display">€ 12,450.00</span>
+        </div>
+    </div>
+
+    <!-- CANVAS REELS -->
+    <div class="reels-frame">
+        <canvas id="slotCanvas" width="750" height="330"></canvas>
+    </div>
+
+    <div id="win-message"></div>
+
+    <!-- BEDIENINGS DASHBOARD -->
+    <div class="dashboard">
+        <div class="stat-box">
+            <div class="stat-label">Saldo</div>
+            <div class="stat-value" id="balance">€ 100</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Inzet</div>
+            <div class="stat-value" id="bet">€ 2</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Winst</div>
+            <div class="stat-value" id="win">€ 0</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-music" id="music-btn" onclick="toggleMusic()">🎵 MUZIEK: UIT</button>
+            <button class="btn" onclick="changeBet(-1)">- INZET</button>
+            <button class="btn" onclick="changeBet(1)">+ INZET</button>
+            <button class="btn btn-spin" id="spin-btn" onclick="startSpin()">SPIN</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- WEB AUDIO API SYNTHESIZER FOR SOUND EFFECTS & MUSIC ---
+let audioCtx = null;
+let musicInterval = null;
+let isMusicPlaying = false;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+// Geluid bij stoppen van een rol
+function playReelStopSound() {
+    initAudio();
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.08);
+}
+
+// Geluid bij winst
+function playWinSound() {
+    initAudio();
+    if (!audioCtx) return;
+    const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
+    notes.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.08);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime + idx * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.08 + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + idx * 0.08);
+        osc.stop(audioCtx.currentTime + idx * 0.08 + 0.2);
+    });
+}
+
+// Casino Synth Achtergrondmuziek
+function toggleMusic() {
+    initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+
+    isMusicPlaying = !isMusicPlaying;
+    const btn = document.getElementById('music-btn');
+
+    if (isMusicPlaying) {
+        btn.innerText = '🎵 MUZIEK: AAN';
+        btn.style.background = 'linear-gradient(180deg, #22c55e 0%, #15803d 100%)';
+        startMusicLoop();
+    } else {
+        btn.innerText = '🎵 MUZIEK: UIT';
+        btn.style.background = 'linear-gradient(180deg, #9333ea 0%, #6b21a8 100%)';
+        stopMusicLoop();
+    }
+}
+
+function startMusicLoop() {
+    const bassNotes = [130.81, 146.83, 164.81, 174.61]; // C3, D3, E3, F3
+    let step = 0;
+    musicInterval = setInterval(() => {
+        if (!isMusicPlaying || !audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(bassNotes[step % bassNotes.length], audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+        step++;
+    }, 400);
+}
+
+function stopMusicLoop() {
+    if (musicInterval) clearInterval(musicInterval);
+}
+
+// --- GAME LOGIC & CANVAS GRAPHICS ---
+const canvas = document.getElementById('slotCanvas');
+const ctx = canvas.getContext('2d');
+
+const SYMBOLS = ['seven', 'watermelon', 'grape', 'orange', 'cherry'];
+const PAYOUTS = {
+    'seven':      { 3: 15, 4: 50,  5: 200 },
+    'watermelon': { 3: 10, 4: 30,  5: 100 },
+    'grape':      { 3: 8,  4: 20,  5: 60  },
+    'orange':     { 3: 5,  4: 12,  5: 40  },
+    'cherry':     { 3: 3,  4: 8,   5: 20  }
+};
+
+const PAYLINES = [
+    { name: 'Middelste Rij',   nodes: [1, 1, 1, 1, 1], color: '#eab308' },
+    { name: 'Bovenste Rij',    nodes: [0, 0, 0, 0, 0], color: '#3b82f6' },
+    { name: 'Onderste Rij',    nodes: [2, 2, 2, 2, 2], color: '#ec4899' },
+    { name: 'Diagonaal Neer',  nodes: [0, 1, 2, 1, 0], color: '#a855f7' },
+    { name: 'Diagonaal Op',    nodes: [2, 1, 0, 1, 2], color: '#22c55e' }
+];
+
+const REEL_COUNT = 5;
+const ROW_COUNT = 3;
+const SYMBOL_HEIGHT = 110;
+const REEL_WIDTH = 150;
+
+// Symbolen tekenen
+const symbolCanvases = {};
+SYMBOLS.forEach(sym => {
+    const c = document.createElement('canvas');
+    c.width = 120; c.height = 100;
+    const cx = c.getContext('2d');
+
+    if (sym === 'seven') {
+        const grad = cx.createLinearGradient(0, 0, 120, 100);
+        grad.addColorStop(0, '#ffe600');
+        grad.addColorStop(0.5, '#ef4444');
+        grad.addColorStop(1, '#990000');
+        cx.fillStyle = grad;
+        cx.strokeStyle = '#fff';
+        cx.lineWidth = 4;
+        cx.beginPath();
+        cx.moveTo(25, 10); cx.lineTo(95, 10); cx.lineTo(50, 90); cx.lineTo(25, 90); cx.lineTo(65, 35); cx.lineTo(25, 35);
+        cx.closePath(); cx.fill(); cx.stroke();
+    } else if (sym === 'cherry') {
+        cx.fillStyle = '#dc2626';
+        cx.beginPath(); cx.arc(40, 65, 20, 0, Math.PI * 2); cx.arc(80, 65, 20, 0, Math.PI * 2); cx.fill();
+        cx.strokeStyle = '#fff'; cx.lineWidth = 2; cx.stroke();
+        cx.strokeStyle = '#15803d'; cx.lineWidth = 5;
+        cx.beginPath();
+        cx.moveTo(40, 50); cx.quadraticCurveTo(60, 20, 60, 10);
+        cx.moveTo(80, 50); cx.quadraticCurveTo(60, 20, 60, 10);
+        cx.stroke();
+    } else if (sym === 'grape') {
+        cx.fillStyle = '#a855f7';
+        [[60,30], [45,48], [75,48], [35,66], [60,66], [85,66], [48,84], [72,84]].forEach(([x,y]) => {
+            cx.beginPath(); cx.arc(x, y, 12, 0, Math.PI * 2); cx.fill();
+            cx.strokeStyle = '#fff'; cx.lineWidth = 1.5; cx.stroke();
+        });
+    } else if (sym === 'watermelon') {
+        cx.fillStyle = '#15803d';
+        cx.beginPath(); cx.arc(60, 50, 42, 0, Math.PI); cx.fill();
+        cx.fillStyle = '#ef4444';
+        cx.beginPath(); cx.arc(60, 50, 34, 0, Math.PI); cx.fill();
+        cx.strokeStyle = '#fff'; cx.lineWidth = 3; cx.stroke();
+    } else if (sym === 'orange') {
+        const grad = cx.createRadialGradient(50, 40, 5, 60, 50, 40);
+        grad.addColorStop(0, '#fbbf24'); grad.addColorStop(1, '#f97316');
+        cx.fillStyle = grad;
+        cx.beginPath(); cx.arc(60, 50, 38, 0, Math.PI * 2); cx.fill();
+        cx.strokeStyle = '#fff'; cx.lineWidth = 3; cx.stroke();
+    }
+    symbolCanvases[sym] = c;
+});
+
+const reels = [];
+for (let i = 0; i < REEL_COUNT; i++) {
+    reels.push({
+        symbols: [getRandomSym(), getRandomSym(), getRandomSym(), getRandomSym(), getRandomSym()],
+        offsetY: 0,
+        speed: 0,
+        spinning: false,
+        stopping: false
+    });
+}
+
+function getRandomSym() {
+    return SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+}
+
+let balance = 100;
+let bet = 2;
+let isSpinning = false;
+let winningLinesToDraw = [];
+
+function updateUI() {
+    document.getElementById('balance').innerText = `€ ${balance}`;
+    document.getElementById('bet').innerText = `€ ${bet}`;
+}
+
+function changeBet(amt) {
+    if (isSpinning) return;
+    bet = Math.max(1, Math.min(50, bet + amt));
+    updateUI();
+}
+
+function startSpin() {
+    if (isSpinning || balance < bet) return;
+    initAudio();
+
+    balance -= bet;
+    document.getElementById('win').innerText = `€ 0`;
+    document.getElementById('win-message').innerText = ``;
+    winningLinesToDraw = [];
+    updateUI();
+
+    isSpinning = true;
+    document.getElementById('spin-btn').disabled = true;
+
+    reels.forEach((reel, i) => {
+        reel.spinning = true;
+        reel.stopping = false;
+        reel.speed = 28;
+        
+        setTimeout(() => {
+            reel.stopping = true;
+        }, 1200 + i * 400);
+    });
+}
+
+function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    reels.forEach((reel, rX) => {
+        const xPos = rX * REEL_WIDTH;
+
+        if (reel.spinning) {
+            reel.offsetY += reel.speed;
+            if (reel.offsetY >= SYMBOL_HEIGHT) {
+                reel.offsetY -= SYMBOL_HEIGHT;
+                reel.symbols.pop();
+                reel.symbols.unshift(getRandomSym());
+            }
+
+            if (reel.stopping && reel.offsetY < reel.speed) {
+                reel.offsetY = 0;
+                reel.spinning = false;
+                reel.stopping = false;
+                reel.speed = 0;
+                
+                // Speel stop-geluid af
+                playReelStopSound();
+
+                if (rX === REEL_COUNT - 1) {
+                    checkWins();
+                }
+            }
+        }
+
+        ctx.fillStyle = '#090314';
+        ctx.fillRect(xPos, 0, REEL_WIDTH, canvas.height);
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(xPos, 0, REEL_WIDTH, canvas.height);
+
+        for (let i = 0; i < reel.symbols.length; i++) {
+            const sym = reel.symbols[i];
+            const yPos = (i - 1) * SYMBOL_HEIGHT + reel.offsetY;
+            if (symbolCanvases[sym]) {
+                ctx.drawImage(symbolCanvases[sym], xPos + 15, yPos + 5);
+            }
+        }
+    });
+
+    winningLinesToDraw.forEach(line => {
+        ctx.strokeStyle = line.color;
+        ctx.lineWidth = 6;
+        ctx.shadowColor = line.color;
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+
+        for (let r = 0; r < line.matchCount; r++) {
+            const x = r * REEL_WIDTH + (REEL_WIDTH / 2);
+            const y = line.nodes[r] * SYMBOL_HEIGHT + (SYMBOL_HEIGHT / 2);
+            if (r === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+    });
+
+    requestAnimationFrame(render);
+}
+
+function checkWins() {
+    isSpinning = false;
+    document.getElementById('spin-btn').disabled = false;
+    let totalWin = 0;
+    let winDetails = [];
+    winningLinesToDraw = [];
+
+    const grid = [];
+    for (let row = 0; row < ROW_COUNT; row++) {
+        grid[row] = [];
+        for (let col = 0; col < REEL_COUNT; col++) {
+            grid[row][col] = reels[col].symbols[row + 1];
+        }
+    }
+
+    PAYLINES.forEach(line => {
+        const firstSym = grid[line.nodes[0]][0];
+        let matchCount = 1;
+
+        for (let col = 1; col < REEL_COUNT; col++) {
+            const rowIdx = line.nodes[col];
+            if (grid[rowIdx][col] === firstSym) {
+                matchCount++;
+            } else {
+                break;
+            }
+        }
+
+        if (matchCount >= 3) {
+            const multiplier = PAYOUTS[firstSym][matchCount];
+            const lineWin = bet * multiplier;
+            totalWin += lineWin;
+            winDetails.push(`${matchCount}x ${firstSym.toUpperCase()}`);
+            
+            winningLinesToDraw.push({
+                nodes: line.nodes,
+                matchCount: matchCount,
+                color: line.color
+            });
+        }
+    });
+
+    if (totalWin > 0) {
+        balance += totalWin;
+        document.getElementById('win').innerText = `€ ${totalWin}`;
+        document.getElementById('win-message').innerText = `GEWONNEN! € ${totalWin} (${winDetails.join(', ')})`;
+        updateUI();
+        playWinSound(); // Speel winst-geluid af
+    }
+}
+
+updateUI();
+requestAnimationFrame(render);
+</script>
+</body>
+</html>
