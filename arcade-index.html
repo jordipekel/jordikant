@@ -293,10 +293,8 @@ function play() {
       const g = games[selected];
       const url = assetUrl(g, g.html);
       
-      // Gebruikt de maximale beschikbare breedte en hoogte van het scherm
-      const w = window.screen.availWidth;
-      const h = window.screen.availHeight;
-      window.open(url, '_blank', `width=${w},height=${h},top=0,left=0,resizable=yes,scrollbars=yes`);
+      // Opent het spel in een nieuw tabblad/webpagina
+      window.open(url, '_blank');
     }
     
     function move(d) {
