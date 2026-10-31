@@ -15,7 +15,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 10px;
+            padding: clamp(6px, 2vw, 14px);
+            overflow-x: hidden;
         }
 
         .slot-container {
@@ -23,7 +24,7 @@
             border: 4px solid #f59e0b;
             box-shadow: 0 0 35px #d97706, inset 0 0 15px #f59e0b;
             border-radius: 20px;
-            padding: 20px;
+            padding: clamp(10px, 2.5vw, 20px);
             width: 100%;
             max-width: 850px;
             display: flex;
@@ -69,7 +70,10 @@
             background: #090314;
             border-radius: 8px;
             display: block;
+            width: 100%;
+            height: auto;
             max-width: 100%;
+            aspect-ratio: 25 / 11;
         }
 
         /* DASHBOARD / CONTROLS */
@@ -98,7 +102,7 @@
         .stat-label { font-size: 11px; color: #a855f7; font-weight: bold; text-transform: uppercase; }
         .stat-value { font-size: 20px; color: #fbbf24; font-weight: 800; font-family: monospace; }
 
-        .controls { display: flex; gap: 10px; }
+        .controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 
         .btn {
             background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
@@ -125,6 +129,8 @@
             box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
         }
         .btn-spin:hover { background: linear-gradient(180deg, #16a34a 0%, #166534 100%); }
+        .btn-auto { background: linear-gradient(180deg,#d97706,#92400e); border-color:#fbbf24; }
+        .btn-auto.active { background:linear-gradient(180deg,#22c55e,#166534); border-color:#86efac; box-shadow:0 0 14px #22c55e; }
         .btn-spin:disabled { opacity: 0.5; cursor: not-allowed; }
 
         #win-message {
@@ -136,6 +142,54 @@
             text-shadow: 0 0 10px #22c55e;
             text-align: center;
         }
+
+        .bonus-overlay{position:fixed;inset:0;background:rgba(5,0,14,.88);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+        .bonus-overlay.show{display:flex}
+        .bonus-modal{width:min(100%,520px);background:linear-gradient(145deg,#3b0764,#170323 70%);border:3px solid #fbbf24;border-radius:20px;padding:22px;text-align:center;box-shadow:0 0 35px #e879f9;position:relative}
+        .bonus-modal h2{color:#fde68a;font-size:clamp(25px,6vw,38px);text-shadow:0 0 12px #f59e0b;margin-bottom:8px}
+        .bonus-modal p{color:#f5d0fe;margin-bottom:12px}
+        .wheel-wrap{width:min(72vw,300px);aspect-ratio:1;margin:18px auto;position:relative}
+        .wheel-pointer{position:absolute;top:-12px;left:50%;transform:translateX(-50%);z-index:2;width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-top:30px solid #fff7c2;filter:drop-shadow(0 2px 3px #000)}
+        .bonus-wheel{width:100%;height:100%;border:8px solid #fbbf24;border-radius:50%;background:conic-gradient(#dc2626 0 45deg,#7e22ce 45deg 90deg,#0891b2 90deg 135deg,#ca8a04 135deg 180deg,#dc2626 180deg 225deg,#7e22ce 225deg 270deg,#0891b2 270deg 315deg,#ca8a04 315deg);box-shadow:0 0 0 5px #713f12,0 0 25px #fbbf24;transition:transform 4s cubic-bezier(.12,.72,.12,1);position:relative}
+        .wheel-labels{position:absolute;inset:0;pointer-events:none}
+        .wheel-labels span{position:absolute;left:50%;top:50%;width:40%;margin-left:-20%;height:16px;text-align:right;padding-right:3px;color:white;font-size:9px;line-height:16px;letter-spacing:-.2px;font-weight:900;text-shadow:0 1px 3px #000;transform-origin:center center;white-space:nowrap}
+        .bonus-result{min-height:28px;color:#fde68a;font-weight:bold;margin:10px 0}
+        .wheel-labels span{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;width:34%;height:34px;margin-left:-17%;padding:0;line-height:1.05;gap:2px;font-size:10px;transform-origin:center center}
+        .wheel-labels .wheel-mult{font-size:11px;font-weight:1000;color:#fff7ae;text-shadow:0 1px 3px #000}
+        .wheel-labels .wheel-spins{font-size:9px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000}
+        .info-overlay{position:fixed;inset:0;background:rgba(5,0,14,.88);display:none;align-items:center;justify-content:center;padding:16px;z-index:60}
+        .info-overlay.show{display:flex}
+        .info-modal{width:min(100%,520px);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#3b0764,#170323 70%);border:3px solid #fbbf24;border-radius:18px;padding:22px;color:#fff;box-shadow:0 0 30px #a855f7}
+        .info-modal h2{color:#fde68a;text-align:center;margin-bottom:12px;font-size:28px}
+        .info-modal p{line-height:1.5;margin:8px 0;color:#f5d0fe}
+        .prize-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+        .prize-table th,.prize-table td{border:1px solid #8b5cf6;padding:8px;text-align:center}
+        .prize-table th{background:#581c87;color:#fde68a}
+        .info-modal .btn{display:block;margin:14px auto 0}
+        canvas#slotCanvas.suspense-zoom {
+            animation: reelSuspenseZoom .42s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 15px #fbbf24) saturate(1.35);
+        }
+        @keyframes reelSuspenseZoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.045); }
+        }
+        .bonus-modal .btn{margin:4px}
+        @media(max-width:600px){
+            body{justify-content:flex-start;padding:6px}
+            .slot-container{border-width:2px;border-radius:14px;padding:9px;gap:2px}
+            .slot-title{font-size:clamp(19px,5.5vw,30px);letter-spacing:1px}
+            .jackpot-amount{font-size:clamp(16px,4vw,22px)}
+            .reels-frame{padding:3px;border-width:2px}
+            .dashboard{justify-content:center;padding:8px;gap:7px;margin-top:9px}
+            .stat-box{min-width:calc(50% - 8px);flex:1;padding:6px 4px}
+            .stat-value{font-size:clamp(15px,4vw,20px)}
+            .controls{width:100%;gap:6px}
+            .btn{padding:10px 11px;font-size:12px;flex:1 1 auto}
+            .btn-spin{padding:11px 18px;font-size:16px;flex:1 1 100%}
+            #win-message{font-size:clamp(14px,4vw,19px);height:auto;min-height:24px}
+        }
+
     </style>
 </head>
 <body>
@@ -144,8 +198,8 @@
     <div class="slot-header">
         <div class="slot-title">★ JORDI VIP FRUIT SLOT ★</div>
         <div class="jackpot-banner">
-            <span style="color:#fef08a; font-weight:bold; font-size:12px;">JACKPOT: </span>
-            <span class="jackpot-amount" id="jackpot-display">€ 12,450.00</span>
+            <span style="color:#fef08a; font-weight:bold; font-size:12px;">BONUS JACKPOT: </span>
+            <span class="jackpot-amount" id="jackpot-display">12.450 punten</span>
         </div>
     </div>
 
@@ -159,16 +213,20 @@
     <!-- BEDIENINGS DASHBOARD -->
     <div class="dashboard">
         <div class="stat-box">
-            <div class="stat-label">Saldo</div>
-            <div class="stat-value" id="balance">€ 100</div>
+            <div class="stat-label">Punten</div>
+            <div class="stat-value" id="balance">100 punten</div>
         </div>
         <div class="stat-box">
             <div class="stat-label">Inzet</div>
-            <div class="stat-value" id="bet">€ 2</div>
+            <div class="stat-value" id="bet">2 punten</div>
         </div>
         <div class="stat-box">
             <div class="stat-label">Winst</div>
-            <div class="stat-value" id="win">€ 0</div>
+            <div class="stat-value" id="win">0 punten</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Free spins</div>
+            <div class="stat-value" id="free-spins">0</div>
         </div>
 
         <div class="controls">
@@ -176,8 +234,45 @@
             <button class="btn" onclick="changeBet(-1)">- INZET</button>
             <button class="btn" onclick="changeBet(1)">+ INZET</button>
             <button class="btn btn-spin" id="spin-btn" onclick="startSpin()">SPIN</button>
+            <button class="btn btn-auto" id="auto-btn" onclick="toggleAutoSpin()">▶ AUTO: UIT</button>
+            <button class="btn" id="info-btn" onclick="openInfo()">ℹ INFO</button>
         </div>
     </div>
+</div>
+
+
+<div class="bonus-overlay" id="bonus-overlay">
+  <div class="bonus-modal">
+    <h2>🎁 BONUSRONDE!</h2>
+    <p>Drie bonus-symbolen! Draai aan het prijzenrad en win punten of free spins.</p>
+    <div class="wheel-wrap">
+      <div class="wheel-pointer"></div>
+      <div class="bonus-wheel" id="bonus-wheel"><div class="wheel-labels" id="wheel-labels"></div></div>
+    </div>
+    <div class="bonus-result" id="bonus-result">Veel succes!</div>
+    <button class="btn btn-spin" id="wheel-spin" onclick="spinBonusWheel()">DRAAI HET RAD</button>
+    <button class="btn" id="bonus-continue" onclick="closeBonus()" style="display:none">VERDER SPELEN</button>
+  </div>
+</div>
+
+<div class="info-overlay" id="info-overlay" onclick="if(event.target===this)closeInfo()">
+  <div class="info-modal">
+    <h2>ℹ JORDI VEGAS – SPELUITLEG</h2>
+    <p><b>Hoe werkt de bonus?</b><br>Verschijnen er 3 of meer bonus-symbolen op de rollen? Dan wordt het prijzenrad vrijgespeeld. Draai het rad om je gratis spins en multiplier te winnen.</p>
+    <p><b>Hoe lees je het rad?</b><br>De X bovenaan is je multiplier. Het getal eronder is het aantal gratis spins. Bijvoorbeeld: X5 boven 5 betekent 5 gratis spins met 5x winst.</p>
+    <table class="prize-table"><thead><tr><th>Multiplier</th><th>Gratis spins</th><th>Betekenis</th></tr></thead><tbody>
+      <tr><td>X5</td><td>5</td><td>5 spins × 5</td></tr>
+      <tr><td>X2</td><td>10</td><td>10 spins × 2</td></tr>
+      <tr><td>X3</td><td>5</td><td>5 spins × 3</td></tr>
+      <tr><td>X2</td><td>25</td><td>25 spins × 2</td></tr>
+      <tr><td>X5</td><td>10</td><td>10 spins × 5</td></tr>
+      <tr><td>X3</td><td>10</td><td>10 spins × 3</td></tr>
+      <tr><td>X2</td><td>5</td><td>5 spins × 2</td></tr>
+      <tr><td>X5</td><td>25</td><td>25 spins × 5</td></tr>
+    </tbody></table>
+    <p><b>Goed om te weten:</b> de multiplier vermenigvuldigt de winst die je tijdens de gratis spins behaalt. Jordi VIP Fruit Slot gebruikt uitsluitend gratis virtuele punten; er is geen echt geld nodig of te winnen.</p>
+    <button class="btn btn-spin" onclick="closeInfo()">SLUITEN</button>
+  </div>
 </div>
 
 <script>
@@ -207,6 +302,37 @@ function playReelStopSound() {
     gain.connect(audioCtx.destination);
     osc.start();
     osc.stop(audioCtx.currentTime + 0.08);
+}
+
+// Casino-sweep: oplopende toon en zachte ruis terwijl de laatste twee rollen draaien.
+function playBonusSweepSound() {
+    initAudio();
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(1450, now + 2.95);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(0.10, now + 0.18);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.3);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(now); osc.stop(now + 3.08);
+
+    // Korte glinsterende casino-pulsjes boven op de sweep.
+    [0, 0.42, 0.84, 1.26, 1.68, 2.05, 2.42, 2.72].forEach((delay, i) => {
+        const ping = audioCtx.createOscillator();
+        const pg = audioCtx.createGain();
+        ping.type = 'sine';
+        ping.frequency.setValueAtTime(700 + i * 115, now + delay);
+        pg.gain.setValueAtTime(0.0001, now + delay);
+        pg.gain.linearRampToValueAtTime(0.055, now + delay + 0.025);
+        pg.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.22);
+        ping.connect(pg); pg.connect(audioCtx.destination);
+        ping.start(now + delay); ping.stop(now + delay + 0.23);
+    });
 }
 
 // Geluid bij winst
@@ -276,7 +402,7 @@ function stopMusicLoop() {
 const canvas = document.getElementById('slotCanvas');
 const ctx = canvas.getContext('2d');
 
-const SYMBOLS = ['seven', 'watermelon', 'grape', 'orange', 'cherry'];
+const SYMBOLS = ['seven', 'watermelon', 'grape', 'orange', 'cherry', 'bonus'];
 const PAYOUTS = {
     'seven':      { 3: 15, 4: 50,  5: 200 },
     'watermelon': { 3: 10, 4: 30,  5: 100 },
@@ -343,6 +469,12 @@ SYMBOLS.forEach(sym => {
         cx.fillStyle = grad;
         cx.beginPath(); cx.arc(60, 50, 38, 0, Math.PI * 2); cx.fill();
         cx.strokeStyle = '#fff'; cx.lineWidth = 3; cx.stroke();
+    } else if (sym === 'bonus') {
+        const grad = cx.createRadialGradient(60, 42, 5, 60, 50, 48);
+        grad.addColorStop(0, '#fff7ad'); grad.addColorStop(0.45, '#f59e0b'); grad.addColorStop(1, '#b45309');
+        cx.fillStyle = grad; cx.strokeStyle = '#fff7ed'; cx.lineWidth = 5;
+        cx.beginPath(); cx.arc(60, 50, 39, 0, Math.PI * 2); cx.fill(); cx.stroke();
+        cx.fillStyle = '#581c87'; cx.font = 'bold 58px Arial'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('★', 60, 52);
     }
     symbolCanvases[sym] = c;
 });
@@ -359,46 +491,213 @@ for (let i = 0; i < REEL_COUNT; i++) {
 }
 
 function getRandomSym() {
-    return SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+    // Bonus blijft bijzonder, maar komt iets vaker voor dan voorheen (4,2% per symbool).
+    if (Math.random() < 0.042) return 'bonus';
+    const regular = SYMBOLS.filter(s => s !== 'bonus');
+    return regular[Math.floor(Math.random() * regular.length)];
 }
 
 let balance = 100;
 let bet = 2;
 let isSpinning = false;
 let winningLinesToDraw = [];
+let freeSpins = 0;
+let freeSpinMultiplier = 1;
+let bonusWheelBusy = false;
+let bonusWheelRotation = 0;
+let suspenseActive = false;
+let autoSpinEnabled = false;
+let autoSpinTimer = null;
+
+// Alle acht vakken geven gratis spins met een multiplier.
+// De tekst op het rad toont de multiplier boven en het aantal spins eronder.
+const BONUS_PRIZES = [
+    {spins:5, multiplier:5},
+    {spins:10, multiplier:2},
+    {spins:5, multiplier:3},
+    {spins:25, multiplier:2},
+    {spins:10, multiplier:5},
+    {spins:10, multiplier:3},
+    {spins:5, multiplier:2},
+    {spins:25, multiplier:5}
+];
+
+function updateFreeSpinsUI() {
+    const el = document.getElementById('free-spins');
+    if (el) el.innerText = freeSpins;
+    const spinButton = document.getElementById('spin-btn');
+    if (spinButton) {
+        spinButton.innerText = freeSpins > 0 ? `FREE SPIN (${freeSpins})` : 'SPIN';
+        spinButton.disabled = isSpinning || (freeSpins <= 0 && balance < bet);
+    }
+}
+
+function buildBonusWheelLabels() {
+    const holder = document.getElementById('wheel-labels');
+    if (!holder) return;
+    holder.innerHTML = '';
+    BONUS_PRIZES.forEach((prize, i) => {
+        const label = document.createElement('span');
+        const multiplier = document.createElement('b');
+        multiplier.className = 'wheel-mult';
+        multiplier.textContent = `X${prize.multiplier}`;
+        const spins = document.createElement('small');
+        spins.className = 'wheel-spins';
+        spins.textContent = `${prize.spins}`;
+        label.append(multiplier, spins);
+        const wheel = document.getElementById('bonus-wheel');
+        const labelRadius = wheel ? wheel.clientWidth * 0.30 : 90;
+        label.style.transform = `rotate(${i * 45 + 22.5}deg) translateY(-${labelRadius}px) rotate(-${i * 45 + 22.5}deg)`;
+        holder.appendChild(label);
+    });
+}
+
+// Casino-rad: ratelende tikken die langzaam vertragen terwijl het wiel stopt.
+function playWheelSpinSound() {
+    initAudio();
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const start = audioCtx.currentTime + 0.03;
+    let elapsed = 0;
+    let step = 0.075;
+    let tick = 0;
+    while (elapsed < 3.85) {
+        const at = start + elapsed;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(tick % 4 === 0 ? 1250 : 850, at);
+        gain.gain.setValueAtTime(0.0001, at);
+        gain.gain.linearRampToValueAtTime(0.045, at + 0.006);
+        gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.045);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(at);
+        osc.stop(at + 0.05);
+        elapsed += step;
+        step = Math.min(0.22, step * 1.055);
+        tick++;
+    }
+}
+
+function openInfo() { document.getElementById('info-overlay').classList.add('show'); }
+function closeInfo() { document.getElementById('info-overlay').classList.remove('show'); }
+
+function openBonusWheel() {
+    bonusWheelBusy = false;
+    document.getElementById('bonus-result').innerText = 'Draai aan het rad voor jouw prijs!';
+    document.getElementById('wheel-spin').style.display = 'inline-block';
+    document.getElementById('wheel-spin').disabled = false;
+    document.getElementById('bonus-continue').style.display = 'none';
+    document.getElementById('bonus-overlay').classList.add('show');
+    buildBonusWheelLabels();
+    initAudio();
+}
+
+function spinBonusWheel() {
+    if (bonusWheelBusy) return;
+    bonusWheelBusy = true;
+    const index = Math.floor(Math.random() * BONUS_PRIZES.length);
+    const prize = BONUS_PRIZES[index];
+    const centerAngle = index * 45 + 22.5;
+    const extraRotation = ((360 - centerAngle) % 360) + 360 * 5;
+    bonusWheelRotation += extraRotation;
+    const wheel = document.getElementById('bonus-wheel');
+    wheel.style.transform = `rotate(${bonusWheelRotation}deg)`;
+    document.getElementById('wheel-spin').disabled = true;
+    playWheelSpinSound();
+    setTimeout(() => {
+        // Elk vak geeft spins plus de getoonde multiplier.
+        freeSpins += prize.spins;
+        freeSpinMultiplier = prize.multiplier;
+        document.getElementById('bonus-result').innerText = `🔥 ${prize.spins} GRATISSE SPINS MET ${prize.multiplier}X MULTIPLIER!`;
+        updateUI();
+        updateFreeSpinsUI();
+        document.getElementById('wheel-spin').style.display = 'none';
+        document.getElementById('bonus-continue').style.display = 'inline-block';
+        playWinSound();
+    }, 4100);
+}
+
+function closeBonus() {
+    document.getElementById('bonus-overlay').classList.remove('show');
+    bonusWheelBusy = false;
+    document.getElementById('bonus-continue').style.display = 'none';
+    updateFreeSpinsUI();
+    scheduleAutoSpin();
+}
 
 function updateUI() {
-    document.getElementById('balance').innerText = `€ ${balance}`;
-    document.getElementById('bet').innerText = `€ ${bet}`;
+    document.getElementById('balance').innerText = `${balance} punten`;
+    document.getElementById('bet').innerText = `${bet} punten`;
+    updateFreeSpinsUI();
 }
 
 function changeBet(amt) {
-    if (isSpinning) return;
+    if (isSpinning || freeSpins > 0) return;
     bet = Math.max(1, Math.min(50, bet + amt));
     updateUI();
 }
 
-function startSpin() {
-    if (isSpinning || balance < bet) return;
-    initAudio();
+function toggleAutoSpin() {
+    if (!autoSpinEnabled && freeSpins <= 0 && balance < bet) {
+        document.getElementById('win-message').innerText = 'Je hebt niet genoeg punten om automatisch te draaien.';
+        return;
+    }
+    autoSpinEnabled = !autoSpinEnabled;
+    const btn = document.getElementById('auto-btn');
+    btn.classList.toggle('active', autoSpinEnabled);
+    btn.textContent = autoSpinEnabled ? '■ AUTO: AAN' : '▶ AUTO: UIT';
+    if (autoSpinTimer) { clearTimeout(autoSpinTimer); autoSpinTimer = null; }
+    if (autoSpinEnabled && !isSpinning && !document.getElementById('bonus-overlay').classList.contains('show')) {
+        startSpin();
+    }
+}
 
-    balance -= bet;
-    document.getElementById('win').innerText = `€ 0`;
+function scheduleAutoSpin() {
+    if (!autoSpinEnabled) return;
+    if (freeSpins <= 0 && balance < bet) {
+        autoSpinEnabled = false;
+        const btn = document.getElementById('auto-btn');
+        btn.classList.remove('active');
+        btn.textContent = '▶ AUTO: UIT';
+        document.getElementById('win-message').innerText = 'Automatisch draaien gestopt: saldo te laag.';
+        return;
+    }
+    if (autoSpinTimer) clearTimeout(autoSpinTimer);
+    autoSpinTimer = setTimeout(() => {
+        autoSpinTimer = null;
+        if (autoSpinEnabled && !isSpinning && !document.getElementById('bonus-overlay').classList.contains('show')) startSpin();
+    }, 850);
+}
+
+function startSpin() {
+    if (isSpinning || (freeSpins <= 0 && balance < bet)) return;
+    initAudio();
+    const usingFreeSpin = freeSpins > 0;
+    if (usingFreeSpin) {
+        freeSpins--;
+    } else {
+        balance -= bet;
+    }
+    document.getElementById('win').innerText = `0 punten`;
     document.getElementById('win-message').innerText = ``;
     winningLinesToDraw = [];
     updateUI();
 
     isSpinning = true;
     document.getElementById('spin-btn').disabled = true;
+    updateFreeSpinsUI();
 
     reels.forEach((reel, i) => {
         reel.spinning = true;
         reel.stopping = false;
         reel.speed = 28;
         
-        setTimeout(() => {
-            reel.stopping = true;
-        }, 1200 + i * 400);
+        // De eerste drie rollen stoppen normaal. De laatste twee wachten op de bonuscheck.
+        if (i < 3) {
+            setTimeout(() => { reel.stopping = true; }, 1200 + i * 400);
+        }
     });
 }
 
@@ -425,7 +724,12 @@ function render() {
                 // Speel stop-geluid af
                 playReelStopSound();
 
+                if (rX === 2) {
+                    handleLastTwoReels();
+                }
                 if (rX === REEL_COUNT - 1) {
+                    document.getElementById('slotCanvas').classList.remove('suspense-zoom');
+                    suspenseActive = false;
                     checkWins();
                 }
             }
@@ -466,9 +770,38 @@ function render() {
     requestAnimationFrame(render);
 }
 
+function countVisibleBonusesInFirstThreeReels() {
+    let count = 0;
+    for (let row = 0; row < ROW_COUNT; row++) {
+        for (let col = 0; col < 3; col++) {
+            if (reels[col].symbols[row + 1] === 'bonus') count++;
+        }
+    }
+    return count;
+}
+
+function handleLastTwoReels() {
+    const lastTwo = [reels[3], reels[4]];
+    const firstThreeBonusCount = countVisibleBonusesInFirstThreeReels();
+    if (firstThreeBonusCount >= 2) {
+        // Twee bonus-symbolen zichtbaar: rollen 4 en 5 blijven extra lang draaien voor de bonus-spanning.
+        suspenseActive = true;
+        document.getElementById('slotCanvas').classList.add('suspense-zoom');
+        document.getElementById('win-message').innerText = '✨ TWEE BONUS-SYMBOLEN... KOMT DE DERDE?';
+        playBonusSweepSound();
+        lastTwo[0].speed = 34;
+        lastTwo[1].speed = 34;
+        setTimeout(() => { lastTwo[0].stopping = true; }, 2200);
+        // De vijfde rol krijgt een extra tel spanning voordat hij stopt.
+        setTimeout(() => { lastTwo[1].stopping = true; }, 3500);
+    } else {
+        setTimeout(() => { lastTwo[0].stopping = true; }, 350);
+        setTimeout(() => { lastTwo[1].stopping = true; }, 750);
+    }
+}
+
 function checkWins() {
     isSpinning = false;
-    document.getElementById('spin-btn').disabled = false;
     let totalWin = 0;
     let winDetails = [];
     winningLinesToDraw = [];
@@ -481,8 +814,12 @@ function checkWins() {
         }
     }
 
+    // Bonus symbols are counted anywhere in the visible 5x3 window.
+    const bonusCount = grid.flat().filter(sym => sym === 'bonus').length;
+
     PAYLINES.forEach(line => {
         const firstSym = grid[line.nodes[0]][0];
+        if (firstSym === 'bonus') return; // Bonus symbols trigger the feature, not a normal line payout.
         let matchCount = 1;
 
         for (let col = 1; col < REEL_COUNT; col++) {
@@ -496,10 +833,9 @@ function checkWins() {
 
         if (matchCount >= 3) {
             const multiplier = PAYOUTS[firstSym][matchCount];
-            const lineWin = bet * multiplier;
+            const lineWin = bet * multiplier * freeSpinMultiplier;
             totalWin += lineWin;
             winDetails.push(`${matchCount}x ${firstSym.toUpperCase()}`);
-            
             winningLinesToDraw.push({
                 nodes: line.nodes,
                 matchCount: matchCount,
@@ -510,13 +846,26 @@ function checkWins() {
 
     if (totalWin > 0) {
         balance += totalWin;
-        document.getElementById('win').innerText = `€ ${totalWin}`;
-        document.getElementById('win-message').innerText = `GEWONNEN! € ${totalWin} (${winDetails.join(', ')})`;
-        updateUI();
-        playWinSound(); // Speel winst-geluid af
+        document.getElementById('win').innerText = `${totalWin} punten`;
+        document.getElementById('win-message').innerText = `GEWONNEN! ${totalWin} punten (${winDetails.join(', ')})`;
+        playWinSound();
+    } else if (bonusCount < 3) {
+        document.getElementById('win').innerText = `0 punten`;
+        document.getElementById('win-message').innerText = 'Geen winst. Probeer het nog eens!';
     }
+
+    if (bonusCount >= 3) {
+        document.getElementById('win-message').innerText = `🎁 ${bonusCount} BONUS-SYMBOLEN! BONUSRAD VRIJGESPEELD!`;
+        setTimeout(openBonusWheel, 650);
+    } else if (freeSpins === 0 && freeSpinMultiplier !== 1) {
+        freeSpinMultiplier = 1;
+    }
+
+    updateUI();
+    if (bonusCount < 3) scheduleAutoSpin();
 }
 
+buildBonusWheelLabels();
 updateUI();
 requestAnimationFrame(render);
 </script>
