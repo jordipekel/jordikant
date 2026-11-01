@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jordi Fighter - Retro Arcade 2D Brawler</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Retro Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            background-color: #03060a;
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        /* Scanline Overlay for Arcade Feel */
+        .crt-overlay::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%);
+            z-index: 15;
+            background-size: 100% 4px;
+            pointer-events: none;
+            border-radius: 12px;
+        }
+
+        .glow-green {
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.35), inset 0 0 10px rgba(0, 255, 102, 0.15);
+        }
+
+        .glow-text-gold {
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 180, 0, 0.5);
+        }
+
+        .glow-text-cyan {
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.8), 0 0 20px rgba(0, 243, 255, 0.5);
+        }
+
+        /* Virtual D-Pad & Buttons styling */
+        .touch-btn {
+            background: rgba(15, 23, 42, 0.75);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            color: white;
+            active: scale(0.95);
+            transition: all 0.05s ease;
+        }
+
+        .touch-btn:active, .touch-btn.active {
+            background: rgba(0, 255, 102, 0.35);
+            border-color: #00ff66;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.6);
+            transform: scale(0.93);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4">
+
+    <!-- MAIN ARCADE CABINET CONTAINER -->
+    <div class="max-w-[900px] w-full flex flex-col items-center">
+
+        <!-- HEADER BANNER -->
+        <div class="w-full bg-[#09150d] border-2 border-[#00ff66]/50 rounded-t-2xl p-3 sm:p-4 flex items-center justify-between shadow-[0_0_20px_rgba(0,255,102,0.2)]">
+            <div class="flex items-center gap-2">
+                <a href="https://jordikant.nl/arcade-index.html" class="text-xs font-['Press_Start_2P'] text-gray-400 hover:text-[#00ff66] transition-colors flex items-center gap-1">
+                    <i class="fa-solid fa-chevron-left text-[10px]"></i> TERUG
+                </a>
+            </div>
+            <h1 class="text-xl sm:text-3xl font-black font-['Orbitron'] text-white tracking-widest text-center">
+                JORDI <span class="text-[#00ff66] glow-text-gold">FIGHTER</span>
+            </h1>
+            <div class="flex items-center gap-2 text-xs font-['Press_Start_2P'] text-[#00ff66]">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#00ff66] animate-pulse"></span>
+                <span>ARCADE</span>
+            </div>
+        </div>
+
+        <!-- ARCADE SCREEN CONTAINER -->
+        <div class="w-full bg-[#080d14] border-x-2 border-b-2 border-[#00ff66]/40 rounded-b-2xl p-2 sm:p-4 crt-overlay relative shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+            
+            <!-- CANVAS Speelveld -->
+            <div class="relative w-full aspect-[16/9] bg-black rounded-lg overflow-hidden border border-gray-800">
+                <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+                <!-- START / OVERLAY SCREEN -->
+                <div id="startScreen" class="absolute inset-0 bg-black/85 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-4 text-center">
+                    <div class="text-[#ccff00] font-['Press_Start_2P'] text-lg sm:text-2xl mb-2 glow-text-gold">
+                        JORDI BRAWLER 2026
+                    </div>
+                    <p class="text-gray-300 text-xs sm:text-sm font-['Rajdhani'] max-w-md mb-6 leading-relaxed">
+                        Speel met <strong class="text-[#ccff00]">Jordi</strong> (geel t-shirt, baard &amp; gouden ketting) en versla de <strong class="text-[#00f3ff]">Cyber-Bot X</strong>!
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-4 text-left text-xs text-gray-400 font-mono bg-slate-900/80 p-3 rounded-xl border border-gray-700 mb-6 max-w-xs sm:max-w-md w-full">
+                        <div>
+                            <span class="text-[#00ff66] font-bold">PC BESTURING:</span><br>
+                            ← → : Lopen<br>
+                            ↑ : Springen<br>
+                            ↓ : Blokkeren
+                        </div>
+                        <div>
+                            <span class="text-[#00f3ff] font-bold">AANVAL:</span><br>
+                            SPATIEBALK : SLAAN<br>
+                            X : Trap<br>
+                            C : Combo
+                        </div>
+                    </div>
+
+                    <button id="startBtn" class="bg-gradient-to-r from-[#00ff66] to-[#00b347] hover:from-[#00b347] hover:to-[#00ff66] text-black font-['Press_Start_2P'] text-xs sm:text-sm px-6 py-3.5 rounded-xl shadow-[0_0_20px_rgba(0,255,102,0.6)] cursor-pointer transform hover:scale-105 transition-all">
+                        PRESS START / RUN
+                    </button>
+                </div>
+            </div>
+
+            <!-- CONTROLS BOARD (MOBIEL & ON-SCREEN PC HELPER) -->
+            <div class="mt-3 grid grid-cols-12 gap-2 sm:gap-4 items-center bg-[#0d1622] p-2.5 sm:p-4 rounded-xl border border-gray-800">
+                
+                <!-- D-PAD / BEWEGEN (LINKS) -->
+                <div class="col-span-6 sm:col-span-5 grid grid-cols-3 gap-1.5 max-w-[190px] mx-auto w-full">
+                    <div></div>
+                    <button id="btnUp" class="touch-btn h-10 sm:h-12"><i class="fa-solid fa-caret-up text-lg"></i></button>
+                    <div></div>
+                    <button id="btnLeft" class="touch-btn h-10 sm:h-12"><i class="fa-solid fa-caret-left text-lg"></i></button>
+                    <button id="btnDown" class="touch-btn h-10 sm:h-12"><i class="fa-solid fa-shield-halved text-sm text-cyan-400"></i></button>
+                    <button id="btnRight" class="touch-btn h-10 sm:h-12"><i class="fa-solid fa-caret-right text-lg"></i></button>
+                </div>
+
+                <!-- COIN / SOUND STATUS (MIDDEN DESKTOP) -->
+                <div class="hidden sm:flex col-span-2 flex-col items-center justify-center text-center gap-1 font-['Press_Start_2P'] text-[10px]">
+                    <span class="text-amber-400 animate-pulse">INSERT COIN</span>
+                    <button id="soundToggle" class="mt-2 text-gray-400 hover:text-white flex items-center gap-1 text-[9px] bg-gray-800 px-2 py-1 rounded">
+                        <i id="soundIcon" class="fa-solid fa-volume-high text-[#00ff66]"></i> GELUID
+                    </button>
+                </div>
+
+                <!-- ACTION BUTTONS (RECHTS) -->
+                <div class="col-span-6 sm:col-span-5 grid grid-cols-3 gap-1.5 max-w-[220px] mx-auto w-full">
+                    <button id="btnPunch" class="touch-btn h-10 sm:h-12 border-emerald-500/50 text-emerald-400 flex-col">
+                        <span class="text-[9px] font-bold">SLAAN</span>
+                        <span class="text-[7px] text-gray-400 sm:hidden">[SPATIE]</span>
+                    </button>
+                    <button id="btnKick" class="touch-btn h-10 sm:h-12 border-amber-500/50 text-amber-400 flex-col">
+                        <span class="text-[9px] font-bold">TRAP</span>
+                        <span class="text-[7px] text-gray-400 sm:hidden">[X]</span>
+                    </button>
+                    <button id="btnSpecial" class="touch-btn h-10 sm:h-12 border-purple-500/50 text-purple-300 flex-col bg-purple-950/40">
+                        <span class="text-[9px] font-bold">SPECIAL</span>
+                        <span class="text-[7px] text-gray-400 sm:hidden">[C]</span>
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- FOOTER INFO -->
+        <div class="w-full text-center mt-3 text-xs text-gray-500 font-mono flex items-center justify-between px-2">
+            <span>© 2026 JordiKant.nl</span>
+            <span>Built with HTML5 &amp; Canvas</span>
+        </div>
+
+    </div>
+
+    <!-- GAME ENGINE CODE -->
+    <script>
+        /* =======================================================
+           1. RETRO AUDIO SYNTHESIZER (Web Audio API)
+           ======================================================= */
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playTone(freq, type, duration, vol = 0.1) {
+                if (this.muted) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e) {}
+            }
+
+            punch() {
+                if (this.muted) return;
+                this.init();
+                try {
+                    // Low noise punch sound
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.12);
+                } catch(e) {}
+            }
+
+            hit() {
+                this.playTone(220, 'square', 0.15, 0.25);
+            }
+
+            special() {
+                if (this.muted) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(600, this.ctx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.35);
+                } catch(e) {}
+            }
+
+            ko() {
+                this.playTone(150, 'sawtooth', 0.6, 0.3);
+                setTimeout(() => this.playTone(90, 'sawtooth', 0.8, 0.3), 200);
+            }
+        }
+
+        const sfx = new SoundFX();
+
+        /* =======================================================
+           2. CANVAS & GLOBAL VARIABLES
+           ======================================================= */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const GAME_WIDTH = 800;
+        const GAME_HEIGHT = 450;
+        const GROUND_Y = 370;
+
+        let gameRunning = false;
+        let roundTime = 60;
+        let timerInterval = null;
+        let screenShake = 0;
+        let particles = [];
+
+        /* =======================================================
+           3. INPUT CONTROLLER (PC & TOUCH)
+           ======================================================= */
+        const keys = {
+            left: false,
+            right: false,
+            up: false,
+            down: false,
+            punch: false,
+            kick: false,
+            special: false
+        };
+
+        // Keyboard Event Listeners
+        window.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            const k = e.key.toLowerCase();
+
+            // Pijltjestoetsen of WASD voor beweging
+            if (k === 'arrowleft' || k === 'a') keys.left = true;
+            if (k === 'arrowright' || k === 'd') keys.right = true;
+            if (k === 'arrowup' || k === 'w') keys.up = true;
+            if (k === 'arrowdown' || k === 's') keys.down = true;
+
+            // Spatiebalk = Slaan! (Optioneel Z of J ook)
+            if (e.code === 'Space' || k === ' ' || k === 'z' || k === 'j') {
+                e.preventDefault();
+                triggerPlayerAttack('punch');
+            }
+            if (k === 'x' || k === 'k') triggerPlayerAttack('kick');
+            if (k === 'c' || k === 'l') triggerPlayerAttack('special');
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const k = e.key.toLowerCase();
+            if (k === 'arrowleft' || k === 'a') keys.left = false;
+            if (k === 'arrowright' || k === 'd') keys.right = false;
+            if (k === 'arrowup' || k === 'w') keys.up = false;
+            if (k === 'arrowdown' || k === 's') keys.down = false;
+        });
+
+        // Attach Virtual Touch Controls
+        function bindTouchBtn(id, action, isAttack = false) {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+
+            const startHandler = (e) => {
+                e.preventDefault();
+                btn.classList.add('active');
+                if (isAttack) {
+                    triggerPlayerAttack(action);
+                } else {
+                    keys[action] = true;
+                }
+            };
+
+            const endHandler = (e) => {
+                e.preventDefault();
+                btn.classList.remove('active');
+                if (!isAttack) keys[action] = false;
+            };
+
+            btn.addEventListener('touchstart', startHandler);
+            btn.addEventListener('touchend', endHandler);
+            btn.addEventListener('mousedown', startHandler);
+            btn.addEventListener('mouseup', endHandler);
+            btn.addEventListener('mouseleave', endHandler);
+        }
+
+        bindTouchBtn('btnLeft', 'left');
+        bindTouchBtn('btnRight', 'right');
+        bindTouchBtn('btnUp', 'up');
+        bindTouchBtn('btnDown', 'down');
+        bindTouchBtn('btnPunch', 'punch', true);
+        bindTouchBtn('btnKick', 'kick', true);
+        bindTouchBtn('btnSpecial', 'special', true);
+
+        /* =======================================================
+           4. FIGHTER CHARACTER CLASS
+           ======================================================= */
+        class Fighter {
+            constructor({ x, y, name, isPlayer }) {
+                this.x = x;
+                this.y = y;
+                this.width = 60;
+                this.height = 110;
+                this.vx = 0;
+                this.vy = 0;
+                this.name = name;
+                this.isPlayer = isPlayer;
+                
+                this.health = 100;
+                this.maxHealth = 100;
+                this.isGrounded = false;
+                this.facing = isPlayer ? 'right' : 'left';
+
+                this.state = 'idle'; // idle, moving, jumping, attack_punch, attack_kick, attack_special, hit, dead
+                this.stateTimer = 0;
+                this.isBlocking = false;
+
+                // Attack Hitbox info
+                this.attackBox = { x: 0, y: 0, width: 0, height: 0 };
+                this.hasHitEnemy = false;
+            }
+
+            update(enemy) {
+                // Gravity
+                this.vy += 0.8;
+                this.y += this.vy;
+                this.x += this.vx;
+
+                // Ground Collision
+                if (this.y + this.height >= GROUND_Y) {
+                    this.y = GROUND_Y - this.height;
+                    this.vy = 0;
+                    this.isGrounded = true;
+                } else {
+                    this.isGrounded = false;
+                }
+
+                // Stage Boundaries
+                if (this.x < 20) this.x = 20;
+                if (this.x + this.width > GAME_WIDTH - 20) this.x = GAME_WIDTH - 20 - this.width;
+
+                // Face towards enemy when idle or moving
+                if (this.state === 'idle' || this.state === 'moving') {
+                    this.facing = (this.x < enemy.x) ? 'right' : 'left';
+                }
+
+                // Handle State Timers
+                if (this.stateTimer > 0) {
+                    this.stateTimer--;
+                    if (this.stateTimer <= 0) {
+                        if (this.health > 0) {
+                            this.state = 'idle';
+                            this.hasHitEnemy = false;
+                        } else {
+                            this.state = 'dead';
+                        }
+                    }
+                }
+
+                // Friction
+                if (this.isGrounded && this.state !== 'moving') {
+                    this.vx *= 0.7;
+                }
+            }
+
+            attack(type) {
+                if (this.stateTimer > 0 || this.health <= 0) return;
+
+                this.state = 'attack_' + type;
+                this.hasHitEnemy = false;
+
+                if (type === 'punch') {
+                    this.stateTimer = 16;
+                    sfx.punch();
+                } else if (type === 'kick') {
+                    this.stateTimer = 22;
+                    sfx.punch();
+                } else if (type === 'special') {
+                    this.stateTimer = 35;
+                    sfx.special();
+                }
+            }
+
+            takeDamage(damage, isHeavy = false) {
+                if (this.health <= 0) return;
+
+                if (this.isBlocking) {
+                    damage *= 0.2; // 80% damage reduction
+                    sfx.hit();
+                } else {
+                    sfx.hit();
+                    this.state = 'hit';
+                    this.stateTimer = 18;
+                    if (isHeavy) screenShake = 12;
+                }
+
+                this.health -= damage;
+                if (this.health < 0) this.health = 0;
+
+                // Create Particle hit effect
+                createHitParticles(this.x + this.width / 2, this.y + 40, isHeavy ? '#ff0055' : '#ffff00');
+
+                if (this.health <= 0) {
+                    this.state = 'dead';
+                    sfx.ko();
+                }
+            }
+
+            draw(ctx) {
+                ctx.save();
+
+                // Draw Shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.beginPath();
+                ctx.ellipse(this.x + this.width / 2, GROUND_Y - 2, 30, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (this.isPlayer) {
+                    this.drawJordi(ctx);
+                } else {
+                    this.drawEnemy(ctx);
+                }
+
+                // Draw Attack Hitbox Visual Effects
+                if (this.state.startsWith('attack_')) {
+                    this.drawAttackEffect(ctx);
+                }
+
+                ctx.restore();
+            }
+
+            /* ----------------------------------------------------
+               CUSTOM PIXEL-ART PIXEL RENDERER FOR JORDI
+               ---------------------------------------------------- */
+            drawJordi(ctx) {
+                const flip = (this.facing === 'left');
+                ctx.translate(this.x + (flip ? this.width : 0), this.y);
+                if (flip) ctx.scale(-1, 1);
+
+                const isAttacking = this.state.startsWith('attack_');
+                const isHit = (this.state === 'hit');
+
+                // Color Palette
+                const cSkin = isHit ? '#ff8888' : '#e5a072';
+                const cHair = '#5c3317'; // Wavy brown hair
+                const cBeard = '#3b1e0b'; // Dark beard
+                const cShirt = '#ccff00'; // Neon lime/yellow shirt
+                const cGold = '#ffd700';  // Gold chain
+                const cPants = '#1e293b'; // Dark trousers
+                const cShoes = '#0f172a'; // Black shoes
+
+                // Pose Modifiers
+                let armOffset = 0;
+                let legOffset = 0;
+                if (this.state === 'attack_punch') armOffset = 25;
+                if (this.state === 'attack_kick') legOffset = 28;
+
+                // 1. LEGS / TROUSERS
+                ctx.fillStyle = cPants;
+                if (this.state === 'attack_kick') {
+                    // Standing leg
+                    ctx.fillRect(15, 60, 14, 45);
+                    // Kicking leg extended
+                    ctx.fillRect(25, 55, 35, 14);
+                    // Shoes
+                    ctx.fillStyle = cShoes;
+                    ctx.fillRect(55, 53, 14, 18);
+                    ctx.fillRect(13, 100, 18, 10);
+                } else {
+                    // Normal standing/walking legs
+                    ctx.fillRect(12, 60, 14, 42);
+                    ctx.fillRect(32, 60, 14, 42);
+                    // Shoes
+                    ctx.fillStyle = cShoes;
+                    ctx.fillRect(10, 98, 18, 12);
+                    ctx.fillRect(32, 98, 18, 12);
+                }
+
+                // 2. TORSO / NEON SHIRT
+                ctx.fillStyle = cShirt;
+                ctx.fillRect(12, 28, 36, 34);
+
+                // Shirt Details (Logo print)
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(20, 36, 16, 4);
+
+                // 3. GOLD CHAIN NECKLACE
+                ctx.fillStyle = cGold;
+                ctx.fillRect(22, 28, 16, 3);
+                ctx.fillRect(26, 31, 8, 3);
+
+                // 4. HEAD, BEARD & WAVY HAIR
+                // Head base (Skin)
+                ctx.fillStyle = cSkin;
+                ctx.fillRect(16, 6, 26, 22);
+
+                // Beard (Matching uploaded photo)
+                ctx.fillStyle = cBeard;
+                ctx.fillRect(16, 18, 26, 10); // Lower beard
+                ctx.fillRect(28, 14, 14, 4);  // Sideburn/Cheek
+
+                // Eyes
+                ctx.fillStyle = '#1e1e1e';
+                ctx.fillRect(32, 11, 4, 4);
+
+                // Wavy Brown Hair
+                ctx.fillStyle = cHair;
+                ctx.fillRect(14, 0, 30, 8);  // Top hair
+                ctx.fillRect(12, 4, 6, 10);  // Back curls
+                ctx.fillRect(20, -3, 8, 4);  // Wave top 1
+                ctx.fillRect(30, -2, 8, 4);  // Wave top 2
+
+                // 5. ARMS / PUNCH
+                ctx.fillStyle = cSkin;
+                if (this.state === 'attack_punch') {
+                    // Extended Punching Arm
+                    ctx.fillRect(32, 30, 32, 12);
+                    // Glove/Fist
+                    ctx.fillStyle = '#ccff00';
+                    ctx.fillRect(60, 28, 12, 16);
+                } else if (this.isBlocking) {
+                    // Guarding Arms
+                    ctx.fillRect(28, 20, 12, 24);
+                } else {
+                    // Normal idle arms
+                    ctx.fillRect(38, 32, 12, 24);
+                }
+            }
+
+            /* ----------------------------------------------------
+               ENEMY CYBER-BOT SPRITE RENDERER
+               ---------------------------------------------------- */
+            drawEnemy(ctx) {
+                const flip = (this.facing === 'left');
+                ctx.translate(this.x + (flip ? this.width : 0), this.y);
+                if (flip) ctx.scale(-1, 1);
+
+                const isHit = (this.state === 'hit');
+                const cMain = isHit ? '#ffffff' : '#1e293b';
+                const cArmor = isHit ? '#ff0055' : '#00f3ff';
+
+                // Cyber Body
+                ctx.fillStyle = cMain;
+                ctx.fillRect(10, 25, 40, 40); // Chest
+
+                // Armor plating
+                ctx.fillStyle = cArmor;
+                ctx.fillRect(16, 30, 28, 12);
+
+                // Legs
+                ctx.fillStyle = cMain;
+                if (this.state === 'attack_kick') {
+                    ctx.fillRect(12, 65, 14, 40);
+                    ctx.fillStyle = cArmor;
+                    ctx.fillRect(25, 60, 36, 14); // Extended kick
+                } else {
+                    ctx.fillRect(12, 65, 14, 40);
+                    ctx.fillRect(34, 65, 14, 40);
+                }
+
+                // Cyber Head & Visor
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(14, 2, 32, 24);
+                // Glowing Neon Visor
+                ctx.fillStyle = isHit ? '#ffff00' : '#ff0055';
+                ctx.fillRect(24, 8, 20, 6);
+
+                // Arms / Punch
+                ctx.fillStyle = cArmor;
+                if (this.state === 'attack_punch') {
+                    ctx.fillRect(30, 30, 35, 14);
+                } else {
+                    ctx.fillRect(38, 32, 12, 26);
+                }
+            }
+
+            /* Draw Attack Effects (Glows & Slashes) */
+            drawAttackEffect(ctx) {
+                const isPlayer = this.isPlayer;
+                const fxColor = isPlayer ? 'rgba(204, 255, 0, 0.7)' : 'rgba(0, 243, 255, 0.7)';
+
+                ctx.fillStyle = fxColor;
+                const reach = (this.facing === 'right') ? (this.x + this.width) : (this.x - 30);
+
+                if (this.state === 'attack_punch') {
+                    ctx.beginPath();
+                    ctx.arc(reach + 15, this.y + 35, 20, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (this.state === 'attack_kick') {
+                    ctx.fillRect(reach, this.y + 50, 35, 15);
+                } else if (this.state === 'attack_special') {
+                    // Massive Power Aura Strike
+                    ctx.fillStyle = 'rgba(255, 0, 100, 0.6)';
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width / 2, this.y + this.height / 2, 70, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            getHitbox() {
+                const isRight = (this.facing === 'right');
+                let box = { x: 0, y: 0, width: 0, height: 0, damage: 0, isHeavy: false };
+
+                if (this.state === 'attack_punch') {
+                    box = {
+                        x: isRight ? this.x + this.width : this.x - 30,
+                        y: this.y + 20,
+                        width: 35,
+                        height: 30,
+                        damage: 8,
+                        isHeavy: false
+                    };
+                } else if (this.state === 'attack_kick') {
+                    box = {
+                        x: isRight ? this.x + this.width : this.x - 40,
+                        y: this.y + 40,
+                        width: 45,
+                        height: 35,
+                        damage: 14,
+                        isHeavy: false
+                    };
+                } else if (this.state === 'attack_special') {
+                    box = {
+                        x: this.x - 40,
+                        y: this.y - 20,
+                        width: this.width + 80,
+                        height: this.height + 40,
+                        damage: 25,
+                        isHeavy: true
+                    };
+                }
+
+                return box;
+            }
+        }
+
+        /* =======================================================
+           5. GAME CREATION & ENGINE LOOP
+           ======================================================= */
+        let player = new Fighter({ x: 150, y: 200, name: 'JORDI', isPlayer: true });
+        let enemy = new Fighter({ x: 580, y: 200, name: 'CYBER-BOT X', isPlayer: false });
+
+        function triggerPlayerAttack(type) {
+            if (player.health <= 0 || !gameRunning) return;
+            player.attack(type);
+        }
+
+        function createHitParticles(x, y, color) {
+            for (let i = 0; i < 12; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    size: Math.random() * 5 + 2,
+                    color: color,
+                    life: 15
+                });
+            }
+        }
+
+        /* SIMPLE AI FOR CYBER-BOT OPPONENT */
+        function updateEnemyAI() {
+            if (enemy.health <= 0 || player.health <= 0) return;
+
+            const dist = Math.abs((player.x + player.width / 2) - (enemy.x + enemy.width / 2));
+
+            // Movement logic
+            if (dist > 70) {
+                enemy.state = 'moving';
+                if (enemy.x > player.x) {
+                    enemy.vx = -2.5;
+                } else {
+                    enemy.vx = 2.5;
+                }
+            } else {
+                enemy.vx = 0;
+                // Attack randomly when in range
+                if (Math.random() < 0.04 && enemy.stateTimer <= 0) {
+                    const rnd = Math.random();
+                    if (rnd < 0.5) enemy.attack('punch');
+                    else if (rnd < 0.85) enemy.attack('kick');
+                    else enemy.attack('special');
+                }
+            }
+        }
+
+        /* HANDLE PLAYER CONTROLS IN LOOP */
+        function handlePlayerMovement() {
+            if (player.health <= 0 || player.state.startsWith('attack_')) return;
+
+            player.isBlocking = keys.down;
+
+            if (keys.left) {
+                player.vx = -4;
+                player.state = 'moving';
+            } else if (keys.right) {
+                player.vx = 4;
+                player.state = 'moving';
+            } else {
+                player.vx = 0;
+                if (player.state === 'moving') player.state = 'idle';
+            }
+
+            if (keys.up && player.isGrounded) {
+                player.vy = -14;
+                player.isGrounded = false;
+                sfx.playTone(300, 'sine', 0.1);
+            }
+        }
+
+        /* CHECK COMBAT HITBOX COLLISIONS */
+        function checkCollisions(attacker, defender) {
+            if (!attacker.state.startsWith('attack_') || attacker.hasHitEnemy) return;
+
+            const box = attacker.getHitbox();
+            if (box.width === 0) return;
+
+            // AABB Collision Detection
+            if (
+                box.x < defender.x + defender.width &&
+                box.x + box.width > defender.x &&
+                box.y < defender.y + defender.height &&
+                box.y + box.height > defender.y
+            ) {
+                defender.takeDamage(box.damage, box.isHeavy);
+                attacker.hasHitEnemy = true;
+            }
+        }
+
+        /* DRAW HUD (HEALTH BARS, TIMER, NAMES) */
+        function drawHUD() {
+            // Player 1 Health Bar (Green/Gold)
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(30, 25, 280, 22);
+            const p1HealthWidth = (player.health / player.maxHealth) * 276;
+            ctx.fillStyle = player.health > 30 ? '#00ff66' : '#ff0055';
+            ctx.fillRect(32, 27, Math.max(0, p1HealthWidth), 18);
+
+            // Player 1 Name
+            ctx.font = '12px "Press Start 2P"';
+            ctx.fillStyle = '#ccff00';
+            ctx.fillText('JORDI (P1)', 30, 18);
+
+            // Enemy Health Bar (Cyan)
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(GAME_WIDTH - 310, 25, 280, 22);
+            const p2HealthWidth = (enemy.health / enemy.maxHealth) * 276;
+            ctx.fillStyle = enemy.health > 30 ? '#00f3ff' : '#ff0055';
+            ctx.fillRect(GAME_WIDTH - 308, 27, Math.max(0, p2HealthWidth), 18);
+
+            // Enemy Name
+            ctx.fillStyle = '#00f3ff';
+            ctx.fillText('CYBER-BOT X', GAME_WIDTH - 310, 18);
+
+            // Timer Box
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(GAME_WIDTH / 2 - 30, 15, 60, 38);
+            ctx.strokeStyle = '#00ff66';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(GAME_WIDTH / 2 - 30, 15, 60, 38);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '18px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText(roundTime, GAME_WIDTH / 2, 42);
+            ctx.textAlign = 'left';
+        }
+
+        /* DRAW ARENA BACKGROUND */
+        function drawArena() {
+            // Cyber Arena Gradient Sky
+            const grad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+            grad.addColorStop(0, '#030712');
+            grad.addColorStop(1, '#0b192c');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            // Neon Grid Lines on Background
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.15)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < GAME_WIDTH; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 100);
+                ctx.lineTo(x, GROUND_Y);
+                ctx.stroke();
+            }
+
+            // Floor Stage
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, GROUND_Y, GAME_WIDTH, GAME_HEIGHT - GROUND_Y);
+
+            // Neon Green Stage Edge Line
+            ctx.strokeStyle = '#00ff66';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, GROUND_Y);
+            ctx.lineTo(GAME_WIDTH, GROUND_Y);
+            ctx.stroke();
+        }
+
+        /* MAIN GAME LOOP */
+        function gameLoop() {
+            ctx.save();
+
+            // Apply Screen Shake
+            if (screenShake > 0) {
+                const dx = (Math.random() - 0.5) * screenShake;
+                const dy = (Math.random() - 0.5) * screenShake;
+                ctx.translate(dx, dy);
+                screenShake *= 0.85;
+                if (screenShake < 0.5) screenShake = 0;
+            }
+
+            // Render
+            drawArena();
+
+            if (gameRunning) {
+                handlePlayerMovement();
+                updateEnemyAI();
+
+                player.update(enemy);
+                enemy.update(player);
+
+                checkCollisions(player, enemy);
+                checkCollisions(enemy, player);
+            }
+
+            // Draw Characters
+            player.draw(ctx);
+            enemy.draw(ctx);
+
+            // Render Particles
+            particles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                if (p.life <= 0) particles.splice(index, 1);
+            });
+
+            drawHUD();
+
+            // KO / GameOver Screen Check
+            if (player.health <= 0 || enemy.health <= 0 || roundTime <= 0) {
+                drawGameOver();
+            }
+
+            ctx.restore();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function drawGameOver() {
+            gameRunning = false;
+            clearInterval(timerInterval);
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            ctx.textAlign = 'center';
+            ctx.font = '32px "Press Start 2P"';
+
+            if (player.health > enemy.health) {
+                ctx.fillStyle = '#ccff00';
+                ctx.fillText('JORDI WINS!', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 10);
+                ctx.font = '14px "Press Start 2P"';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText('KO! CYBER-BOT DEFEATED', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 30);
+            } else {
+                ctx.fillStyle = '#ff0055';
+                ctx.fillText('CYBER-BOT WINS!', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 10);
+                ctx.font = '14px "Press Start 2P"';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText('TRY AGAIN!', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 30);
+            }
+
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('startBtn').innerText = 'PLAY AGAIN / REMATCH';
+            ctx.textAlign = 'left';
+        }
+
+        function startGame() {
+            player = new Fighter({ x: 150, y: 200, name: 'JORDI', isPlayer: true });
+            enemy = new Fighter({ x: 580, y: 200, name: 'CYBER-BOT X', isPlayer: false });
+            roundTime = 60;
+            particles = [];
+
+            document.getElementById('startScreen').classList.add('hidden');
+            gameRunning = true;
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (gameRunning && roundTime > 0) {
+                    roundTime--;
+                }
+            }, 1000);
+        }
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            sfx.init();
+            startGame();
+        });
+
+        // Sound Toggle Button
+        const soundBtn = document.getElementById('soundToggle');
+        const soundIcon = document.getElementById('soundIcon');
+        soundBtn.addEventListener('click', () => {
+            sfx.muted = !sfx.muted;
+            if (sfx.muted) {
+                soundIcon.className = 'fa-solid fa-volume-xmark text-gray-500';
+            } else {
+                soundIcon.className = 'fa-solid fa-volume-high text-[#00ff66]';
+                sfx.playTone(800, 'sine', 0.1);
+            }
+        });
+
+        // Start animation loop on window load
+        window.onload = function() {
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
