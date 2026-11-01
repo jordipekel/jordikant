@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Jordi Vip Roulette</title>
+<style>
+:root{--gold:#e9bd59;--felt:#087438}*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#30251c,#090909 75%);color:#fff;font-family:Georgia,serif}
+.app{width:min(1180px,100%);margin:auto;padding:10px 14px 14px}
+header{text-align:center;line-height:1}.brand{font:700 10px Arial;letter-spacing:4px;color:var(--gold)}h1{margin:4px 0 8px;font-size:clamp(25px,4vw,38px);letter-spacing:2px;color:#f5d27e}
+.topbar{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 9px}.stat{min-width:104px;text-align:center;padding:6px 13px;background:#171512;border:1px solid #96702e;border-radius:9px}.stat small{display:block;color:#e4c67d;font:10px Arial}.stat strong{font:bold 19px Arial}
+.main{display:grid;grid-template-columns:minmax(300px,.9fr) minmax(400px,1.1fr);gap:12px;align-items:stretch}
+.panel{min-width:0;background:linear-gradient(145deg,#2b2118,#100e0b);border:2px solid #98702e;border-radius:15px;padding:10px;box-shadow:0 6px 20px #0009}
+.wheel-title{text-align:center;color:#ffe6a0;font:10px Arial;letter-spacing:2.5px;margin:0 0 5px}
+.wheel-wrap{position:relative;width:min(100%,440px);aspect-ratio:1;margin:auto}.wheel-wrap canvas{width:100%;height:100%;display:block}.pointer{position:absolute;z-index:2;top:0;left:50%;transform:translateX(-50%);border-left:11px solid transparent;border-right:11px solid transparent;border-top:24px solid #ffe28b;filter:drop-shadow(0 2px 2px #000)}
+.result{text-align:center;min-height:27px;padding:5px 2px 0;color:#ffe29a;font:bold 14px Arial}.red{color:#ff7777}.black{color:#eee}.green{color:#72e6a0}
+.betpanel h2{margin:0;color:#ffe6a0;font-size:18px}.bethead{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}.hint{text-align:right;color:#cfc6b2;font:10px Arial}
+.chips{display:flex;justify-content:center;gap:9px;margin:6px 0 9px}.chip{width:43px;height:43px;border-radius:50%;border:3px dashed #fff9;outline:2px solid #d9bd77;color:#fff;font:bold 15px Arial;cursor:pointer;box-shadow:0 2px 5px #000}.chip[data-v="2"]{background:#2467bb}.chip[data-v="5"]{background:#b52d39}.chip[data-v="10"]{background:#222}.chip.sel{outline:3px solid #ffe28b;transform:translateY(-2px)}
+.tablebox{background:#075b2b;border:4px ridge #c59a49;border-radius:4px;padding:5px}.table{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}.cell{position:relative;min-height:34px;border:1px solid #ddd;background:#087439;display:flex;align-items:center;justify-content:center;font:bold 18px Georgia;cursor:pointer;user-select:none}.cell.rednum{background:#b51e27}.cell.blacknum{background:#171717}.cell.zero{grid-column:1/4;background:#087e3c;min-height:30px}.stack{position:absolute;right:1px;top:0;background:#ffe08a;color:#211b0e;border-radius:50%;min-width:17px;height:17px;padding:1px;font:bold 10px Arial;display:grid;place-items:center}
+.outside{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin-top:4px}.out{min-height:33px;border:1px solid #e2d6a5;background:#08632e;display:grid;place-items:center;text-align:center;font:bold 10px Arial;cursor:pointer;padding:2px}.out.redbet{background:#b51d25}.out.blackbet{background:#222}.out:hover,.cell:hover{filter:brightness(1.3)}
+.betinfo{display:flex;justify-content:space-between;gap:5px;flex-wrap:wrap;margin:7px 1px;color:#ddd;font:10px Arial}
+.actions{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px 0 3px}button.action{border:1px solid #f1d184;border-radius:7px;padding:10px 12px;background:linear-gradient(#e7bd5c,#98651e);color:#211606;font:bold 11px Arial;cursor:pointer}button.secondary{background:linear-gradient(#45413a,#211f1b);color:#f5e4bd;border-color:#8f7b54}button:disabled{opacity:.4;cursor:not-allowed}
+.toast{text-align:center;min-height:17px;color:#ffe39a;font:11px Arial}.note{text-align:center;color:#aaa;font:9px Arial;line-height:1.35;margin:7px 0 0}
+@media(max-width:760px){.app{padding:7px 9px 10px}.main{grid-template-columns:1fr;gap:8px}.panel{padding:8px}.wheel-wrap{width:min(72vw,330px)}.wheel-title{margin-bottom:2px}.result{min-height:22px;font-size:12px}.topbar{margin-bottom:7px}.stat{min-width:90px;padding:5px 10px}.stat strong{font-size:17px}.betpanel h2{font-size:16px}.cell{min-height:clamp(26px,5.2vw,35px);font-size:16px}.cell.col{font-size:9px}.out{min-height:29px;font-size:9px}.chip{width:38px;height:38px}.actions{margin:6px 0 2px}.action{padding:9px 10px!important}}
+@media(max-width:390px){.wheel-wrap{width:min(67vw,275px)}.cell{min-height:26px;font-size:14px}.out{font-size:8px;min-height:27px}.tablebox{padding:3px}.stat{min-width:83px}.actions{gap:4px}button.action{font-size:10px;padding:8px 8px!important}}
+</style></head>
+<body><main class="app">
+<header><div class="brand">JORDI PRESENTS</div><h1>Jordi Vip Roulette</h1></header>
+<div class="topbar"><div class="stat"><small>Jouw punten</small><strong id="balance">200</strong></div><div class="stat"><small>Inzet op tafel</small><strong id="total">0</strong></div><div class="stat"><small>Laatste nummer</small><strong id="last">—</strong></div></div>
+<div class="main">
+<section class="panel"><div class="wheel-title">ROULETTE • SINGLE ZERO</div><div class="wheel-wrap"><div class="pointer"></div><canvas id="wheel" width="800" height="800"></canvas></div><div class="result" id="message">Kies je fiches en plaats je inzet</div></section>
+<section class="panel betpanel"><div class="bethead"><h2>PLAATS JE INZET</h2><div class="hint">Kies een fiche<br>en tik op de tafel</div></div>
+<div class="chips"><button class="chip sel" data-v="2">2</button><button class="chip" data-v="5">5</button><button class="chip" data-v="10">10</button></div>
+<div class="tablebox"><div class="table" id="table"><div class="cell zero" data-bet="n:0">0</div></div>
+<div class="outside" id="outside">
+<div class="out" data-bet="d:1">1e 12</div><div class="out" data-bet="d:2">2e 12</div><div class="out" data-bet="d:3">3e 12</div><div class="out" data-bet="c:1">KOL 1</div><div class="out" data-bet="c:2">KOL 2</div><div class="out" data-bet="c:3">KOL 3</div>
+<div class="out" data-bet="range:1">1 t/m 18</div><div class="out" data-bet="even">EVEN</div><div class="out redbet" data-bet="red">ROOD</div><div class="out blackbet" data-bet="black">ZWART</div><div class="out" data-bet="odd">ONEVEN</div><div class="out" data-bet="range:2">19 t/m 36</div></div></div>
+<div class="betinfo"><span id="chosen">Fiche: 2 punten</span><span id="count">0 fiches geplaatst</span></div>
+<div class="actions"><button class="action" id="spin">DRAAI ROULETTE</button><button class="action secondary" id="undo">LAATSTE INZET TERUG</button><button class="action secondary" id="clear">INZETTEN WEG</button><button class="action secondary" id="sound">GELUID: AAN</button></div>
+<div class="toast" id="toast"></div><div class="note">Gratis virtuele punten • Iedere nieuwe opening start met 200 punten • Geen echt geld of prijzen</div>
+</section></div></main>
+<script>
+const reds=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+// Correcte Europese wielvolgorde: alle 37 vakken, ieder nummer precies één keer.
+const order=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const color=n=>n===0?'green':reds.has(n)?'red':'black';
+let balance=200,chip=2,bets=[],busy=false,wheelAngle=0,soundOn=true,audio=null;
+const $=id=>document.getElementById(id),canvas=$('wheel'),ctx=canvas.getContext('2d');
+function audioReady(){if(!soundOn)return null;if(!audio)audio=new(window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();return audio;}
+function tone(freq=440,dur=.08,type='sine',vol=.035,delay=0){let a=audioReady();if(!a)return;let o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(freq,a.currentTime+delay);g.gain.setValueAtTime(vol,a.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+delay+dur);o.connect(g);g.connect(a.destination);o.start(a.currentTime+delay);o.stop(a.currentTime+delay+dur+.02);}
+function tick(){tone(850,.035,'square',.018);}
+function winSound(){[523,659,784,1047].forEach((f,i)=>tone(f,.22,'triangle',.045,i*.13));}
+function draw(angle=0,ballAngle=0){
+ ctx.clearRect(0,0,800,800);
+ ctx.save();
+ ctx.translate(400,400);
+ ctx.rotate(angle);
+
+ // Closed wooden/gold outer rim.
+ ctx.beginPath();
+ ctx.arc(0,0,370,0,Math.PI*2);
+ ctx.fillStyle='#512608';
+ ctx.fill();
+ ctx.lineWidth=17;
+ ctx.strokeStyle='#e8b94f';
+ ctx.stroke();
+ ctx.beginPath();
+ ctx.arc(0,0,340,0,Math.PI*2);
+ ctx.fillStyle='#b77b30';
+ ctx.fill();
+
+ // European wheel: 37 equal pockets, exactly covering 360 degrees.
+ const count=order.length;
+ const step=(Math.PI*2)/count;
+ const outerR=320, innerR=210, labelR=267;
+
+ for(let i=0;i<count;i++){
+   const n=order[i];
+   const a=-Math.PI/2+i*step;
+   const b=-Math.PI/2+(i+1)*step;
+   const mid=(a+b)/2;
+
+   // Annular sector: outer arc and matching reverse inner arc.
+   ctx.beginPath();
+   ctx.arc(0,0,outerR,a,b,false);
+   ctx.arc(0,0,innerR,b,a,true);
+   ctx.closePath();
+   ctx.fillStyle=n===0?'#087d3b':(reds.has(n)?'#b51e27':'#171717');
+   ctx.fill();
+   ctx.strokeStyle='#f0d18a';
+   ctx.lineWidth=2;
+   ctx.stroke();
+
+   // Position label with Cartesian coordinates at the true pocket midpoint.
+   // This avoids the previous transform error that pushed labels out of pockets.
+   const tx=Math.cos(mid)*labelR;
+   const ty=Math.sin(mid)*labelR;
+   ctx.save();
+   ctx.translate(tx,ty);
+   let rotation=mid+Math.PI/2;
+   // Keep labels upright on the lower half of the wheel.
+   if(Math.sin(mid)>0) rotation+=Math.PI;
+   ctx.rotate(rotation);
+   ctx.fillStyle='#fff8df';
+   ctx.font='bold 23px Georgia,serif';
+   ctx.textAlign='center';
+   ctx.textBaseline='middle';
+   ctx.shadowColor='#000';
+   ctx.shadowBlur=2;
+   ctx.fillText(String(n),0,0);
+   ctx.restore();
+ }
+
+ // Inner gold and green rings.
+ ctx.beginPath();
+ ctx.arc(0,0,innerR+5,0,Math.PI*2);
+ ctx.strokeStyle='#e8bd59';
+ ctx.lineWidth=11;
+ ctx.stroke();
+ ctx.beginPath();
+ ctx.arc(0,0,innerR-8,0,Math.PI*2);
+ ctx.strokeStyle='#087d3b';
+ ctx.lineWidth=6;
+ ctx.stroke();
+
+ // Wooden center and four gold spokes.
+ const wood=ctx.createRadialGradient(-45,-55,8,0,0,195);
+ wood.addColorStop(0,'#c18438');
+ wood.addColorStop(.45,'#754014');
+ wood.addColorStop(1,'#281307');
+ ctx.beginPath();
+ ctx.arc(0,0,190,0,Math.PI*2);
+ ctx.fillStyle=wood;
+ ctx.fill();
+ ctx.lineWidth=8;
+ ctx.strokeStyle='#f0c967';
+ ctx.stroke();
+
+ for(let i=0;i<4;i++){
+   ctx.save();
+   ctx.rotate(i*Math.PI/2+.35);
+   ctx.beginPath();
+   ctx.moveTo(0,-25);
+   ctx.lineTo(0,-155);
+   ctx.lineWidth=15;
+   ctx.strokeStyle='#e9b84f';
+   ctx.stroke();
+   ctx.beginPath();
+   ctx.arc(0,-158,17,0,Math.PI*2);
+   ctx.fillStyle='#ffe08a';
+   ctx.fill();
+   ctx.restore();
+ }
+ ctx.beginPath();
+ ctx.arc(0,0,22,0,Math.PI*2);
+ ctx.fillStyle='#ffe7a0';
+ ctx.fill();
+ ctx.restore();
+
+ // White ball on the outer track.
+ const bx=Math.cos(ballAngle)*333;
+ const by=Math.sin(ballAngle)*333;
+ ctx.beginPath();
+ ctx.arc(400+bx,400+by,11,0,Math.PI*2);
+ ctx.fillStyle='#fffbe9';
+ ctx.shadowColor='#fff';
+ ctx.shadowBlur=12;
+ ctx.fill();
+ ctx.shadowBlur=0;
+}
+function render(){document.querySelectorAll('[data-bet]').forEach(el=>{el.querySelector('.stack')?.remove();let v=bets.filter(b=>b.key===el.dataset.bet).reduce((s,b)=>s+b.amt,0);if(v){let s=document.createElement('span');s.className='stack';s.textContent=v;el.append(s);}});$('balance').textContent=balance;$('total').textContent=bets.reduce((s,b)=>s+b.amt,0);$('count').textContent=bets.length+' fiches geplaatst';$('spin').disabled=busy||!bets.length;$('undo').disabled=busy||!bets.length;$('clear').disabled=busy||!bets.length;}
+function place(key){if(busy)return;if(balance<chip){$('toast').textContent='Niet genoeg punten voor dit fiche.';tone(180,.1,'sawtooth');return;}audioReady();balance-=chip;bets.push({key,amt:chip});$('toast').textContent='Inzet geplaatst: '+chip+' punten';tone(650,.06,'triangle');render();}
+for(let n=1;n<=36;n++){let e=document.createElement('div');e.className='cell '+(reds.has(n)?'rednum':'blacknum');e.dataset.bet='n:'+n;e.textContent=n;$('table').append(e);}
+document.querySelectorAll('[data-bet]').forEach(e=>e.addEventListener('click',()=>place(e.dataset.bet)));
+document.querySelectorAll('.chip').forEach(e=>e.onclick=()=>{if(busy)return;chip=+e.dataset.v;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('sel',x===e));$('chosen').textContent='Fiche: '+chip+' punten';tone(520,.06);});
+function won(k,n){if(k.startsWith('n:'))return n===+k.slice(2);if(k.startsWith('d:')){let d=+k.slice(2);return n>=(d-1)*12+1&&n<=d*12;}if(k.startsWith('c:'))return n!==0&&n%3===+k.slice(2)%3;if(k==='red'||k==='black')return color(n)===k;if(k==='even')return n!==0&&n%2===0;if(k==='odd')return n!==0&&n%2===1;if(k==='range:1')return n>=1&&n<=18;if(k==='range:2')return n>=19&&n<=36;return false;}
+$('spin').onclick=()=>{if(busy||!bets.length)return;audioReady();busy=true;render();$('message').textContent='DE KOGEL ROLT...';$('toast').textContent='';let n=order[Math.floor(Math.random()*37)],idx=order.indexOf(n),step=2*Math.PI/37,start=wheelAngle,target=-(idx*step+step/2),delta=((target-start)%(2*Math.PI)+2*Math.PI)%(2*Math.PI),end=start+Math.PI*2*(8+Math.floor(Math.random()*3))+delta,begin=performance.now(),duration=5600,lastTick=0;
+function frame(now){let t=Math.min(1,(now-begin)/duration),ease=1-Math.pow(1-t,5);wheelAngle=start+(end-start)*ease;let ball=-Math.PI/2-ease*Math.PI*2*12;draw(wheelAngle,ball);if(Math.floor(ease*90)>lastTick){lastTick=Math.floor(ease*90);if(lastTick%2===0)tick();}if(t<1)requestAnimationFrame(frame);else{let winnings=0;bets.forEach(b=>{if(won(b.key,n)){let type=b.key.split(':')[0],mult=type==='n'?36:(type==='d'||type==='c'?3:2);winnings+=b.amt*mult;}});balance+=winnings;$('last').textContent=n;$('message').innerHTML='Gevallen nummer: <b class="'+color(n)+'">'+n+'</b> • '+(winnings?'<span class="green">Gewonnen: '+winnings+' punten!</span>':'Geen prijs deze ronde');$('toast').textContent=winnings?'Gefeliciteerd! Je hebt gewonnen.':'Volgende ronde beter!';if(winnings)winSound();else tone(220,.2,'triangle',.025);bets=[];busy=false;render();}}requestAnimationFrame(frame);};
+$('undo').onclick=()=>{if(!busy&&bets.length){balance+=bets.pop().amt;render();tone(400,.07);}};$('clear').onclick=()=>{if(!busy){balance+=bets.reduce((s,b)=>s+b.amt,0);bets=[];render();$('toast').textContent='Alle inzetten zijn teruggegeven.';tone(350,.08);}};
+$('sound').onclick=()=>{soundOn=!soundOn;$('sound').textContent='GELUID: '+(soundOn?'AAN':'UIT');if(soundOn){audioReady();tone(600,.1);}};
+draw();render();
+</script></body></html>
